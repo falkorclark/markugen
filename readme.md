@@ -1,8 +1,6 @@
 # Markugen
 
-> Markdown to HTML static site gneration tool
-
-[![NPM](https://img.shields.io/npm/v/random.svg)](https://www.npmjs.com/package/markugen)
+> Markdown to HTML static site generation tool
 
 Welcome to Markugen! You have been Marked!! 😜
 
@@ -30,6 +28,14 @@ const mark = new Markugen({
 });
 mark.generate();
 ```
+
+## Documentation
+
+The full documentation can be found in the docs directory. The docs are gnerated
+using Markugen; therefore, this is also a great place to see a demo of what 
+Markugen produces as output.
+
+[Documentation and Demo](./docs/index.html)
 
 ## Related
 
