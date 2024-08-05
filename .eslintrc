@@ -1,0 +1,23 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "ignorePatterns": [ 
+    "node_modules/**", 
+    "build/**",
+    "*.json"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "off",
+    "no-control-regex": "off",
+    "prefer-const": "warn",
+    "@typescript-eslint/no-explicit-any": "warn"
+  }
+}

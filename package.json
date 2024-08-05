@@ -1,0 +1,57 @@
+{
+  "name": "markugen",
+  "version": "0.0.1",
+  "description": "Markdown to HTML static site generation tool",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/falkorclark/markugen.git"
+  },
+  "module": "./lib/markugen.js",
+  "main": "./lib/markugen.js",
+  "types": "./lib/markugen.d.ts",
+  "exports": {
+    ".": "./lib/markugen.js",
+    "./lib/*.js": "./lib/*.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "templates",
+    "docs"
+  ],
+  "type": "commonjs",
+  "author": "Falkor Clark <falkorclark@gmail.com>",
+  "contributors": [],
+  "license": "MIT",
+  "engines": {
+    "node": "^20.15.0"
+  },
+  "scripts": {
+    "start": "node --import tsx src/bin/main.ts",
+    "build": "node --import tsx src/bin/build.ts",
+    "lint": "eslint src --ext .ts",
+    "tsc": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/shelljs": "^0.8.15",
+    "@types/yargs": "^17.0.32",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "eslint": "^8.57.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "highlight.js": "^11.10.0",
+    "html-entities": "^2.5.2",
+    "marked": "^13.0.3",
+    "marked-alert": "^2.0.1",
+    "marked-directive": "^1.0.5",
+    "marked-gfm-heading-id": "^4.0.0",
+    "marked-highlight": "^2.1.3",
+    "shelljs": "^0.8.5",
+    "yargs": "^17.7.2"
+  }
+}
