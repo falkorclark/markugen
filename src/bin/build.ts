@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import Markugen from '../markugen';
+import shell from 'shelljs';
 
 function main()
 {
@@ -27,6 +28,7 @@ function docs()
  */
 function tsc() 
 {
+  shell.rm('-rf', './lib');
   const result = spawnSync(
     'npm', ['run', 'tsc'],
     {shell:true, encoding:'utf8'}

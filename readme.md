@@ -23,8 +23,6 @@ const mark = new Markugen({
   input: 'devops/tests',
   output: 'docs',
   clearOutput: true,
-  // prevent the assets folder from being copied
-  assets: [],
 });
 mark.generate();
 ```

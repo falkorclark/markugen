@@ -633,7 +633,7 @@ class Markugen
   markugen = {
   "version": "0.0.1",
   "name": "markugen",
-  "date": "2024-08-05T16:56:21.962Z",
+  "date": "2024-08-05T19:05:18.948Z",
   "platform": "windows"
 };
   sitemap = {
