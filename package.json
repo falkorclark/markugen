@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
@@ -26,6 +26,14 @@
   "engines": {
     "node": "^20.11.1"
   },
+  "keywords": [
+    "markdown",
+    "html",
+    "marked",
+    "remark",
+    "rehype",
+    "dcoumentation"
+  ],
   "scripts": {
     "start": "node --import tsx src/bin/main.ts",
     "build": "node --import tsx src/bin/build.ts",

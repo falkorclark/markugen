@@ -33,8 +33,6 @@ The full documentation can be found in the docs directory. The docs are gnerated
 using Markugen; therefore, this is also a great place to see a demo of what 
 Markugen produces as output.
 
-[Documentation and Demo](./docs/index.html)
-
 ## Related
 
 * [marked](https://marked.js.org/) - Markdown parser used by Markugen
