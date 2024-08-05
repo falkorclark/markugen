@@ -29,6 +29,8 @@
   "scripts": {
     "start": "node --import tsx src/bin/main.ts",
     "build": "node --import tsx src/bin/build.ts",
+    "prebuild": "del /f /q lib",
+    "prepublishOnly": "npm run build",
     "lint": "eslint src --ext .ts",
     "tsc": "tsc -p tsconfig.json"
   },
