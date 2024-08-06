@@ -4,6 +4,7 @@
   ],
   "exclude": [
     "src/bin/build.ts",
+    "src/bin/test.ts",
   ],
   "compilerOptions": {
     "target": "es2022",

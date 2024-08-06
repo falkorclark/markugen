@@ -384,19 +384,19 @@ th {
 }
 
 /* Syntax highlighter */
-.hljs-attr {
+.hljs-attr, .hljs-attribute {
   color: var(--hljs-attr);
 }
 .hljs-punctuation {
   color: var(--hljs-punctuation);
 }
-.hljs-string {
+.hljs-string, .hljs-selector-class, .hljs-selector-pseudo {
   color: var(--hljs-string);
 }
-.hljs-keyword, .hljs-literal, .hljs-built_in, .hljs-section {
+.hljs-keyword, .hljs-literal, .hljs-built_in, .hljs-section, .hljs-selector-tag {
   color: var(--hljs-keyword);
 }
-.hljs-link {
+.hljs-link, .hljs-selector-id {
   color: var(--markugen-accent-color);
 }
 .hljs-number, .hljs-title {

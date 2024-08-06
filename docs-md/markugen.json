@@ -1,5 +1,6 @@
 [
   { "name" : "index", "title": "Home" },
+  { "name" : "Options" },
   { "name" : "Components", "toc": 4 },
-  { "name" : "Layout" }
+  { "name" : "Styles", "toc": 4 }
 ]

@@ -113,8 +113,8 @@ function foo()
 ~~~
 
 ### Commands
-Commands are options that Markugenb allows you to execute within code blocks
-in your markdown file. Dpending on the command, Markugen will populate the code
+Commands are options that Markugen allows you to execute within code blocks
+in your markdown file. Depending on the command, Markugen will populate the code
 block with data from executing that command.
 
 #### markugen.import

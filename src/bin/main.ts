@@ -1,4 +1,5 @@
-import Markugen, { Options } from '../markugen';
+import Markugen from '../markugen';
+import { Options } from '../options';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { version, name } from '../../package.json';
