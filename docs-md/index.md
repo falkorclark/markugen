@@ -49,5 +49,5 @@ of the major features are listed below:
 ## Issues and Feature Requests
 This NodeJS package was developed by Falkor Clark. Please contact Falkor at
 [falkorclark@gmail.com](mailto:falkorclark@gmail.com) or submit an issue
-on GitHub at 
-[https://github.com/falkorclark/markugen](https://github.com/falkorclark/markugen/issues).
+on [GitHub](https://github.com) at 
+[github.com/falkorclark/markugen](https://github.com/falkorclark/markugen/issues).
