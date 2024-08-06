@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
@@ -17,7 +17,8 @@
   "files": [
     "lib",
     "templates",
-    "docs"
+    "docs",
+    "docs-md"
   ],
   "type": "commonjs",
   "author": "Falkor Clark <falkorclark@gmail.com>",
@@ -32,11 +33,15 @@
     "marked",
     "remark",
     "rehype",
-    "dcoumentation"
+    "documentation",
+    "vuepress",
+    "vue",
+    "nextra"
   ],
   "scripts": {
     "start": "node --import tsx src/bin/main.ts",
     "build": "node --import tsx src/bin/build.ts",
+    "test": "node --import tsx src/bin/test.ts",
     "prepublishOnly": "npm run build",
     "lint": "eslint src --ext .ts",
     "tsc": "tsc -p tsconfig.json"

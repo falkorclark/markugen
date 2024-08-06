@@ -14,11 +14,9 @@ function main()
 function docs()
 {
   const mark = new Markugen({
-    input: 'devops/tests',
+    input: 'docs-md',
     output: 'docs',
     clearOutput: true,
-    // prevent the assets folder from being copied
-    assets: [],
   });
   mark.generate();
 }

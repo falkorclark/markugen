@@ -555,7 +555,10 @@ class Markugen
     for(const child in parent.children)
     {
       const page = parent.children[child];
-      page.active = /\.html$/i.test(page.href) && window.location.href.indexOf(page.href) >= 0;
+      let urlpath = window.location.pathname;
+      // handle servers that auto show index.html pages
+      if (urlpath.endsWith('/')) urlpath = urlpath + 'index.html';
+      page.active = urlpath.endsWith(page.href);
       if (page.active)
       {
         let path = '';
@@ -567,7 +570,7 @@ class Markugen
       const path = this.currentPathToRoot(page);
       if (path) return path;
     }
-    return undefined;
+    return '';
   }
 
   // toggles the current theme
