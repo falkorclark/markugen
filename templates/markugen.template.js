@@ -1,39 +1,26 @@
 
-
-class MarkugenSitemap
+class MarkugenMenu
 {
   mark = null;
   hamburger = null;
   menu = null;
+  content = null;
   hiddenByUser = false;
   hidden = false;
   entries = [];
 
-  constructor(markugen)
-  {
+  constructor(markugen, content)
+  { 
     this.mark = markugen;
-
-    // create the hamburger menu
-    this.hamburger = document.createElement('div');
-    this.hamburger.id = 'markugen-navbar-menu';
-    this.hamburger.innerHTML = '<svg width="30px" height="30px" viewBox="0 -960 960 960" fill="var(--markugen-color)"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>';
-    this.hamburger.onclick = (e) => this.onclickHamburger(e);
-    this.mark.navbarContents.insertBefore(this.hamburger, this.mark.title);
-
-    // create the left menu
-    this.menu = document.createElement('div');
-    this.menu.id = 'markugen-sitemap-menu';
-    this.mark.body.appendChild(this.menu);
-    this.addChildren(this.mark.sitemap, this.menu);
-
+    this.content = content;
     window.addEventListener('click', (e) => this.onclick(e));
   }
 
   isAlwaysHidden() { return this.entries.length < 2; }
   hideAlways()
   {
-    if (!this.mark.contentLeft.classList.contains('markugen-hidden'))
-      this.mark.contentLeft.classList.add('markugen-hidden');
+    if (!this.content.classList.contains('markugen-hidden'))
+      this.content.classList.add('markugen-hidden');
     if (!this.menu.classList.contains('markugen-hidden'))
       this.menu.classList.add('markugen-hidden');
     if (!this.hamburger.classList.contains('markugen-hidden'))
@@ -51,13 +38,13 @@ class MarkugenSitemap
 
     if (this.mark.isWidescreen() && (!user || !this.hiddenByUser))
     {
-      this.mark.contentLeft.classList.remove('markugen-hidden');
+      this.content.classList.remove('markugen-hidden');
       this.menu.classList.remove('markugen-hidden');
     }
     else if (!this.mark.isWidescreen())
     {
-      if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
-        this.mark.contentLeft.classList.add('markugen-hidden');
+      if (!this.content.classList.contains('markugen-hidden')) 
+        this.content.classList.add('markugen-hidden');
       this.menu.classList.remove('markugen-hidden');
     }
     this.hidden = false;
@@ -70,8 +57,8 @@ class MarkugenSitemap
       if (user && !this.hiddenByUser) this.hiddenByUser = true;
       return;
     }
-    if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
-      this.mark.contentLeft.classList.add('markugen-hidden');
+    if (!this.content.classList.contains('markugen-hidden')) 
+      this.content.classList.add('markugen-hidden');
     if (!this.menu.classList.contains('markugen-hidden')) 
       this.menu.classList.add('markugen-hidden');
     this.hidden = true;
@@ -80,12 +67,59 @@ class MarkugenSitemap
   toggle(user = false)
   {
     if (this.mark.isWidescreen())
-      this.mark.contentLeft.classList.toggle('markugen-hidden');
-    else if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
-      this.mark.contentLeft.classList.add('markugen-hidden');
+      this.content.classList.toggle('markugen-hidden');
+    else if (!this.content.classList.contains('markugen-hidden')) 
+      this.content.classList.add('markugen-hidden');
     
     this.hidden = this.menu.classList.toggle('markugen-hidden');
     if (user) this.hiddenByUser = this.hidden;
+  }
+  
+  onclickHamburger(e)
+  {
+    this.toggle(true); 
+    e.stopPropagation();
+  }
+  onclick(e)
+  {
+    if (!this.mark.isWidescreen() && !this.hidden)
+      this.hide();
+  }
+  onresize()
+  {
+    if (this.mark.isWidescreen() && !this.hiddenByUser)
+    {
+      this.content.classList.remove('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    else if (!this.mark.isWidescreen())
+    {
+      if (!this.content.classList.contains('markugen-hidden')) 
+        this.content.classList.add('markugen-hidden');
+      if (!this.menu.classList.contains('markugen-hidden')) 
+        this.menu.classList.add('markugen-hidden');
+    }
+  }
+}
+
+class MarkugenSitemap extends MarkugenMenu
+{
+  constructor(markugen)
+  {
+    super(markugen, markugen.contentLeft);
+
+    // create the hamburger menu
+    this.hamburger = document.createElement('div');
+    this.hamburger.id = 'markugen-navbar-menu';
+    this.hamburger.innerHTML = '<svg width="30px" height="30px" viewBox="0 -960 960 960" fill="var(--markugen-color)"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>';
+    this.hamburger.onclick = (e) => this.onclickHamburger(e);
+    this.mark.navbarContents.insertBefore(this.hamburger, this.mark.title);
+
+    // create the left menu
+    this.menu = document.createElement('div');
+    this.menu.id = 'markugen-sitemap-menu';
+    this.mark.body.appendChild(this.menu);
+    this.addChildren(this.mark.sitemap, this.menu);
   }
 
   // add link to the sitemap menu
@@ -191,48 +225,16 @@ class MarkugenSitemap
     }
     return false;
   }
-
-  onclickHamburger(e)
-  {
-    this.toggle(true); 
-    e.stopPropagation();
-  }
-  onclick(e)
-  {
-    if (!this.mark.isWidescreen() && !this.hidden)
-      this.hide();
-  }
-  onresize()
-  {
-    if (this.mark.isWidescreen() && !this.hiddenByUser)
-    {
-      this.mark.contentLeft.classList.remove('markugen-hidden');
-      this.menu.classList.remove('markugen-hidden');
-    }
-    else if (!this.mark.isWidescreen())
-    {
-      if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
-        this.mark.contentLeft.classList.add('markugen-hidden');
-      if (!this.menu.classList.contains('markugen-hidden')) 
-        this.menu.classList.add('markugen-hidden');
-    }
-  }
 }
 
-class MarkugenToc
+class MarkugenToc extends MarkugenMenu
 {
-  mark = null;
-  menu = null;
-  hamburger = null;
-  hiddenByUser = false;
-  hidden = false;
   headers = [];
-  links = [];
   activeLink = null;
 
   constructor(markugen)
   {
-    this.mark = markugen;
+    super(markugen, markugen.contentRight);
 
     const hs = [];
     for(let i = 1; i <= this.mark.page.toc; i++) hs.push(`h${i}`);
@@ -269,69 +271,7 @@ class MarkugenToc
     this.menu.appendChild(back);
 
     if (!this.isAlwaysHidden())
-    {
       document.addEventListener('scroll', () => this.onscroll());
-      window.addEventListener('click', (e) => this.onclick(e));
-    }
-  }
-
-  isAlwaysHidden() { return this.links.length < 2; }
-  hideAlways()
-  {
-    if (!this.mark.contentRight.classList.contains('markugen-hidden'))
-      this.mark.contentRight.classList.add('markugen-hidden');
-    if (!this.menu.classList.contains('markugen-hidden'))
-      this.menu.classList.add('markugen-hidden');
-    if (!this.hamburger.classList.contains('markugen-hidden'))
-      this.hamburger.classList.add('markugen-hidden');
-    this.hidden = true;
-  }
-
-  show(user = false)
-  {
-    if (!this.hidden)
-    {
-      if (user && this.hiddenByUser) this.hiddenByUser = false;
-      return;
-    }
-
-    if (this.mark.isWidescreen() && (!user || !this.hiddenByUser))
-    {
-      this.mark.contentRight.classList.remove('markugen-hidden');
-      this.menu.classList.remove('markugen-hidden');
-    }
-    else if (!this.mark.isWidescreen())
-    {
-      if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
-        this.mark.contentRight.classList.add('markugen-hidden');
-      this.menu.classList.remove('markugen-hidden');
-    }
-    this.hidden = false;
-    if (user) this.hiddenByUser = this.hidden;
-  }
-  hide(user = false)
-  {
-    if (this.hidden)
-    {
-      if (user && !this.hiddenByUser) this.hiddenByUser = true;
-      return;
-    }
-    if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
-      this.mark.contentRight.classList.add('markugen-hidden');
-    if (!this.menu.classList.contains('markugen-hidden')) 
-      this.menu.classList.add('markugen-hidden');
-    this.hidden = true;
-    if (user) this.hiddenByUser = this.hidden;
-  }
-  toggle(user = false)
-  {
-    if (this.mark.isWidescreen())
-      this.mark.contentRight.classList.toggle('markugen-hidden');
-    else if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
-      this.mark.contentRight.classList.add('markugen-hidden');
-    
-    this.hidden = this.menu.classList.toggle('markugen-hidden');
-    if (user) this.hiddenByUser = this.hidden;
   }
 
   createLinks(children, parent, depth = 0)
@@ -345,7 +285,7 @@ class MarkugenToc
       link.setAttribute('name', header.id);
       link.innerHTML = header.title;
       link.onclick = () => window.location.href = window.location.pathname + `#${header.id}`;
-      this.links.push(link);
+      this.entries.push(link);
       parent.appendChild(link);
 
       if (header.children.length > 0)
@@ -390,30 +330,9 @@ class MarkugenToc
     return toplevel;
   }
 
-  onclickHamburger(e)
-  {
-    this.toggle(true); 
-    e.stopPropagation();
-  }
-  onclick(e)
-  {
-    if (!this.mark.isWidescreen() && !this.hidden)
-      this.hide();
-  }
   onresize()
   {
-    if (this.mark.isWidescreen() && !this.hiddenByUser)
-    {
-      this.mark.contentRight.classList.remove('markugen-hidden');
-      this.menu.classList.remove('markugen-hidden');
-    }
-    else if (!this.mark.isWidescreen())
-    {
-      if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
-        this.mark.contentRight.classList.add('markugen-hidden');
-      if (!this.menu.classList.contains('markugen-hidden')) 
-        this.menu.classList.add('markugen-hidden');
-    }
+    super.onresize();
     this.onscroll();
   }
   onscroll()
