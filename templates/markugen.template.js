@@ -200,8 +200,7 @@ class MarkugenToc
   menu = null;
   hamburger = null;
   hiddenByUser = false;
-  mouseOverHamburger = false;
-  mouseOverMenu = false;
+  hidden = false;
   headers = [];
   links = [];
   activeLink = null;
@@ -217,18 +216,14 @@ class MarkugenToc
     this.hamburger = document.createElement('div');
     this.hamburger.id = 'markugen-navbar-toc';
     this.hamburger.innerHTML = '<svg width="30px" height="30px" viewBox="0 -960 960 960" fill="var(--markugen-color)"><path d="M280-600v-80h560v80H280Zm0 160v-80h560v80H280Zm0 160v-80h560v80H280ZM160-600q-17 0-28.5-11.5T120-640q0-17 11.5-28.5T160-680q17 0 28.5 11.5T200-640q0 17-11.5 28.5T160-600Zm0 160q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520q17 0 28.5 11.5T200-480q0 17-11.5 28.5T160-440Zm0 160q-17 0-28.5-11.5T120-320q0-17 11.5-28.5T160-360q17 0 28.5 11.5T200-320q0 17-11.5 28.5T160-280Z"/></svg>';
-    this.hamburger.onclick = () => this.onclickHamburger();
-    this.hamburger.onmouseover = () => this.onmouseoverHamburger();
-    this.hamburger.onmouseout = () => this.onmouseoutHamburger();
+    this.hamburger.onclick = (e) => this.onclickHamburger(e);
     this.mark.toolbar.appendChild(this.hamburger);
 
     this.headers = hs.length === 0 ? [] : document.querySelectorAll(hs.join(','));
 
     this.menu = document.createElement('div');
     this.menu.id = 'markugen-toc';
-    this.menu.onmouseover = () => this.onmouseoverMenu();
-    this.menu.onmouseout = () => this.onmouseoutMenu();
-    this.mark.contentRight.appendChild(this.menu);
+    this.mark.body.appendChild(this.menu);
 
     const title = document.createElement('div');
     title.innerHTML = 'Contents';
@@ -248,16 +243,70 @@ class MarkugenToc
     back.innerHTML = '<a href="#">Back to Top</a>';
     this.menu.appendChild(back);
 
-    document.addEventListener('scroll', () => this.onscroll());
+    if (!this.isAlwaysHidden())
+    {
+      document.addEventListener('scroll', () => this.onscroll());
+      window.addEventListener('click', (e) => this.onclick(e));
+    }
   }
 
-  isHidden() { return this.links.length < 2; }
-  hide()
+  isAlwaysHidden() { return this.links.length < 2; }
+  hideAlways()
   {
     if (!this.mark.contentRight.classList.contains('markugen-hidden'))
       this.mark.contentRight.classList.add('markugen-hidden');
+    if (!this.menu.classList.contains('markugen-hidden'))
+      this.menu.classList.add('markugen-hidden');
     if (!this.hamburger.classList.contains('markugen-hidden'))
       this.hamburger.classList.add('markugen-hidden');
+    this.hidden = true;
+  }
+
+  show(user = false)
+  {
+    if (!this.hidden)
+    {
+      if (user && this.hiddenByUser) this.hiddenByUser = false;
+      return;
+    }
+
+    if (this.mark.isWidescreen() && (!user || !this.hiddenByUser))
+    {
+      this.mark.contentRight.classList.remove('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    else if (!this.mark.isWidescreen())
+    {
+      if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
+        this.mark.contentRight.classList.add('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    this.hidden = false;
+    if (user) this.hiddenByUser = this.hidden;
+  }
+  hide(user = false)
+  {
+    if (this.hidden)
+    {
+      if (user && !this.hiddenByUser) this.hiddenByUser = true;
+      return;
+    }
+    if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
+      this.mark.contentRight.classList.add('markugen-hidden');
+    if (!this.menu.classList.contains('markugen-hidden')) 
+      this.menu.classList.add('markugen-hidden');
+    this.hidden = true;
+    if (user) this.hiddenByUser = this.hidden;
+  }
+  toggle(user = false)
+  {
+    if (this.mark.isWidescreen())
+      this.mark.contentRight.classList.toggle('markugen-hidden');
+    else if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
+      this.mark.contentRight.classList.add('markugen-hidden');
+    
+    this.hidden = this.menu.classList.toggle('markugen-hidden');
+    if (user) this.hiddenByUser = this.hidden;
   }
 
   createLinks(children, parent, depth = 0)
@@ -316,53 +365,36 @@ class MarkugenToc
     return toplevel;
   }
 
-  onclickHamburger()
+  onclickHamburger(e)
   {
-    if (this.mark.isWidescreen() && this.mark.contentRight)
-      this.hiddenByUser = this.mark.contentRight.classList.toggle('markugen-hidden');
+    this.toggle(true); 
+    e.stopPropagation();
   }
-  onmouseoverHamburger()
+  onclick(e)
   {
-    this.mouseOverHamburger = true;
-    if (!this.mark.isWidescreen() && this.mark.contentRight)
-      this.mark.contentRight.classList.remove('markugen-hidden');
-  }
-  onmouseoutHamburger()
-  {
-    this.mouseOverHamburger = false;
-    if (!this.mark.isWidescreen())
-    {
-      setTimeout(() => {
-        if (this.mark.contentRight && !this.mouseOverHamburger && !this.mouseOverMenu)
-          this.mark.contentRight.classList.add('markugen-hidden');
-      }, 1000);
-    }
-  }
-  onmouseoverMenu()
-  {
-    this.mouseOverMenu = true;
-    if (!this.mark.isWidescreen() && this.mark.contentRight)
-      this.mark.contentRight.classList.remove('markugen-hidden');
-  }
-  onmouseoutMenu()
-  {
-    this.mouseOverMenu = false;
-    if (!this.mark.isWidescreen() && this.mark.contentRight && !this.mouseOverHamburger)
-      this.mark.contentRight.classList.add('markugen-hidden');
+    if (!this.mark.isWidescreen() && !this.hidden)
+      this.hide();
   }
   onresize()
   {
-    if (!this.hiddenByUser)
+    if (this.mark.isWidescreen() && !this.hiddenByUser)
     {
-      if (this.mark.isWidescreen()) this.mark.contentRight.classList.remove('markugen-hidden');
-      else this.mark.contentRight.classList.add('markugen-hidden');
+      this.mark.contentRight.classList.remove('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    else if (!this.mark.isWidescreen())
+    {
+      if (!this.mark.contentRight.classList.contains('markugen-hidden')) 
+        this.mark.contentRight.classList.add('markugen-hidden');
+      if (!this.menu.classList.contains('markugen-hidden')) 
+        this.menu.classList.add('markugen-hidden');
     }
     this.onscroll();
   }
   onscroll()
   {
     // nothing to do if hidden
-    if (this.isHidden()) return;
+    if (this.isAlwaysHidden()) return;
 
     let active = this.activeLink;
     for (const head of this.headers)
@@ -424,7 +456,7 @@ class Markugen
     // hide sitemap if less than 2 entries
     if (this.markSitemap.isHidden()) this.markSitemap.hide();
     // hide toc if only less than 2 entries
-    if (this.markToc.isHidden()) this.markToc.hide();
+    if (this.markToc.isAlwaysHidden()) this.markToc.hideAlways();
     
     // these should be done last
     window.addEventListener('resize', () => this.onresize());
@@ -623,7 +655,7 @@ class Markugen
   onresize()
   {
     if (!this.markSitemap.isHidden()) this.markSitemap.onresize();
-    if (!this.markToc.isHidden()) this.markToc.onresize();
+    if (!this.markToc.isAlwaysHidden()) this.markToc.onresize();
   }
 
   isWidescreen() { return window.innerWidth >= 1200; }
