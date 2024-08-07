@@ -1,11 +1,12 @@
 {
   "name": "markugen",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/falkorclark/markugen.git"
   },
+  "homepage": "https://falkorclark.com/markugen/index.html",
   "module": "./lib/markugen.js",
   "main": "./lib/markugen.js",
   "types": "./lib/markugen.d.ts",
