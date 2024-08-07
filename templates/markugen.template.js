@@ -6,8 +6,7 @@ class MarkugenSitemap
   hamburger = null;
   menu = null;
   hiddenByUser = false;
-  mouseOverHamburger = false;
-  mouseOverMenu = false;
+  hidden = false;
   entries = [];
 
   constructor(markugen)
@@ -18,32 +17,75 @@ class MarkugenSitemap
     this.hamburger = document.createElement('div');
     this.hamburger.id = 'markugen-navbar-menu';
     this.hamburger.innerHTML = '<svg width="30px" height="30px" viewBox="0 -960 960 960" fill="var(--markugen-color)"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>';
-    this.hamburger.onclick = () => this.onclickHamburger();
-    this.hamburger.onmouseover = () => this.onmouseoverHamburger();
-    this.hamburger.onmouseout = () => this.onmouseoutHamburger();
+    this.hamburger.onclick = (e) => this.onclickHamburger(e);
     this.mark.navbarContents.insertBefore(this.hamburger, this.mark.title);
 
     // create the left menu
     this.menu = document.createElement('div');
     this.menu.id = 'markugen-sitemap-menu';
-    this.menu.onmouseover = () => this.onmouseoverMenu();
-    this.menu.onmouseout = () => this.onmouseoutMenu();
-    this.mark.contentLeft.appendChild(this.menu);
+    this.mark.body.appendChild(this.menu);
     this.addChildren(this.mark.sitemap, this.menu);
+
+    window.addEventListener('click', (e) => this.onclick(e));
   }
 
-  isHidden() { return this.entries.length < 2; }
-  hide()
+  isAlwaysHidden() { return this.entries.length < 2; }
+  hideAlways()
   {
+    if (!this.mark.contentLeft.classList.contains('markugen-hidden'))
+      this.mark.contentLeft.classList.add('markugen-hidden');
+    if (!this.menu.classList.contains('markugen-hidden'))
+      this.menu.classList.add('markugen-hidden');
+    if (!this.hamburger.classList.contains('markugen-hidden'))
+      this.hamburger.classList.add('markugen-hidden');
+    this.hidden = true;
+  }
+
+  show(user = false)
+  {
+    if (!this.hidden)
+    {
+      if (user && this.hiddenByUser) this.hiddenByUser = false;
+      return;
+    }
+
+    if (this.mark.isWidescreen() && (!user || !this.hiddenByUser))
+    {
+      this.mark.contentLeft.classList.remove('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    else if (!this.mark.isWidescreen())
+    {
+      if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
+        this.mark.contentLeft.classList.add('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    this.hidden = false;
+    if (user) this.hiddenByUser = this.hidden;
+  }
+  hide(user = false)
+  {
+    if (this.hidden)
+    {
+      if (user && !this.hiddenByUser) this.hiddenByUser = true;
+      return;
+    }
     if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
       this.mark.contentLeft.classList.add('markugen-hidden');
-    if (!this.hamburger.classList.contains('markugen-hidden')) 
-      this.hamburger.classList.add('markugen-hidden');
+    if (!this.menu.classList.contains('markugen-hidden')) 
+      this.menu.classList.add('markugen-hidden');
+    this.hidden = true;
+    if (user) this.hiddenByUser = this.hidden;
   }
-  show()
+  toggle(user = false)
   {
-    this.mark.contentLeft.classList.remove('markugen-hidden');
-    this.hamburger.classList.remove('markugen-hidden');
+    if (this.mark.isWidescreen())
+      this.mark.contentLeft.classList.toggle('markugen-hidden');
+    else if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
+      this.mark.contentLeft.classList.add('markugen-hidden');
+    
+    this.hidden = this.menu.classList.toggle('markugen-hidden');
+    if (user) this.hiddenByUser = this.hidden;
   }
 
   // add link to the sitemap menu
@@ -150,46 +192,29 @@ class MarkugenSitemap
     return false;
   }
 
-  onclickHamburger()
+  onclickHamburger(e)
   {
-    if (this.mark.isWidescreen() && this.mark.contentLeft)
-      this.hiddenByUser = this.mark.contentLeft.classList.toggle('markugen-hidden');
+    this.toggle(true); 
+    e.stopPropagation();
   }
-  onmouseoverHamburger()
+  onclick(e)
   {
-    this.mouseOverHamburger = true;
-    if (!this.mark.isWidescreen() && this.mark.contentLeft)
-      this.mark.contentLeft.classList.remove('markugen-hidden');
-  }
-  onmouseoutHamburger()
-  {
-    this.mouseOverHamburger = false;
-    if (!this.mark.isWidescreen())
-    {
-      setTimeout(() => {
-        if (this.mark.contentLeft && !this.mouseOverHamburger && !this.mouseOverMenu)
-          this.mark.contentLeft.classList.add('markugen-hidden');
-      }, 1000);
-    }
-  }
-  onmouseoverMenu()
-  {
-    this.mouseOverMenu = true;
-    if (!this.mark.isWidescreen() && this.mark.contentLeft)
-      this.mark.contentLeft.classList.remove('markugen-hidden');
-  }
-  onmouseoutMenu()
-  {
-    this.mouseOverMenu = false;
-    if (!this.mark.isWidescreen() && this.mark.contentLeft && !this.mouseOverHamburger)
-      this.mark.contentLeft.classList.add('markugen-hidden');
+    if (!this.mark.isWidescreen() && !this.hidden)
+      this.hide();
   }
   onresize()
   {
-    if (!this.hiddenByUser)
+    if (this.mark.isWidescreen() && !this.hiddenByUser)
     {
-      if (this.mark.isWidescreen()) this.mark.contentLeft.classList.remove('markugen-hidden');
-      else this.mark.contentLeft.classList.add('markugen-hidden');
+      this.mark.contentLeft.classList.remove('markugen-hidden');
+      this.menu.classList.remove('markugen-hidden');
+    }
+    else if (!this.mark.isWidescreen())
+    {
+      if (!this.mark.contentLeft.classList.contains('markugen-hidden')) 
+        this.mark.contentLeft.classList.add('markugen-hidden');
+      if (!this.menu.classList.contains('markugen-hidden')) 
+        this.menu.classList.add('markugen-hidden');
     }
   }
 }
@@ -454,7 +479,7 @@ class Markugen
     this.createPrevNext();
 
     // hide sitemap if less than 2 entries
-    if (this.markSitemap.isHidden()) this.markSitemap.hide();
+    if (this.markSitemap.isAlwaysHidden()) this.markSitemap.hideAlways();
     // hide toc if only less than 2 entries
     if (this.markToc.isAlwaysHidden()) this.markToc.hideAlways();
     
@@ -654,7 +679,7 @@ class Markugen
 
   onresize()
   {
-    if (!this.markSitemap.isHidden()) this.markSitemap.onresize();
+    if (!this.markSitemap.isAlwaysHidden()) this.markSitemap.onresize();
     if (!this.markToc.isAlwaysHidden()) this.markToc.onresize();
   }
 
