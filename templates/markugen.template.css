@@ -113,6 +113,9 @@ th {
 .markugen-hidden {
   display: none;
 }
+.markugen-spacer {
+  flex: 1;
+}
 
 /* main content styles */
 #markugen-body {
@@ -383,6 +386,39 @@ th {
   text-align: right;
 }
 
+/* Code Blocks */
+.markugen-code {
+  margin: 10px 0px;
+  max-width: fit-content;
+  background-color: var(--markugen-bg-color-secondary);
+	border-radius: 10px;
+  border: 1px solid var(--markugen-border-color);
+  box-shadow: var(--markugen-box-shadow-bottom);
+}
+.markugen-code-toolbar {
+  display: flex;
+  gap: 10px;
+  padding-top: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-bottom: 1px solid var(--markugen-border-color);
+  min-height: 30px;
+  max-height: 30px;
+}
+.markugen-code-content {
+  padding: 10px;
+  margin: 0px;
+}
+.markugen-code-copy, .markugen-code-save {
+  cursor: pointer;
+}
+:not(pre) > code {
+  background-color: var(--markugen-bg-color-secondary);
+	border-radius: 0.33em;
+  padding-left: 0.33em;
+  padding-right: 0.33em;
+}
+
 /* Syntax highlighter */
 .hljs-attr, .hljs-attribute {
   color: var(--hljs-attr);
@@ -410,24 +446,6 @@ th {
 }
 .hljs-strong {
   font-weight: bold;
-}
-pre:has(code) {
-  display: block;
-  max-width: fit-content;
-  white-space: pre-wrap;
-  background-color: var(--markugen-bg-color-secondary);
-	border-radius: 10px;
-  padding: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  border: 1px solid var(--markugen-border-color);
-  box-shadow: var(--markugen-box-shadow-bottom);
-}
-:not(pre) > code {
-  background-color: var(--markugen-bg-color-secondary);
-	border-radius: 0.33em;
-  padding-left: 0.33em;
-  padding-right: 0.33em;
 }
 
 /* Markdown alerts */

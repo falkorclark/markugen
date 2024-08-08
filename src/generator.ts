@@ -14,8 +14,9 @@ import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 import markedDocument from './extensions/markeddocument';
 import markedLinks from './extensions/markedlinks';
-import markedCode from './extensions/markedcode';
+import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
+import markedCopySaveCode from './extensions/markedcopysavecode';
 
 export interface PageConfig {
   name:string,
@@ -176,8 +177,8 @@ export default class Generator
       if (p3)
       {
         return JSON.stringify({
-          version: this.mark.version,
-          name: this.mark.name,
+          version: Markugen.version,
+          name: Markugen.name,
           date: new Date(),
           platform: os.platform() === 'win32' ? 'windows' : 'linux',
         }, null, 2);
@@ -529,7 +530,8 @@ export default class Generator
           return hljs.highlight(code, { language }).value;
         }
       }),
-      markedCode({
+      markedCopySaveCode(),
+      markedCommands({
         file: md,
         markugen: this.mark,
       }),
