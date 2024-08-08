@@ -18,16 +18,22 @@ export interface OutputLabel {
 
 export default class Markugen
 {
-  // stores the version of the app
-  public readonly version:string = version;
-  // stores the name of the app
-  public readonly name:string = name;
-  // stores the options
-  public readonly options:Options;
-  // stores the path to the package
-  public readonly root:string;
-  // the default light and dark theme
-  public readonly defaultTheme:Themes = {
+  /**
+   * The version of Markugen
+   */
+  public static readonly version:string = version;
+  /**
+   * The name of Markugen
+   */
+  public static readonly name:string = name;
+  /**
+   * Regular expression used for Markugen commands
+   */
+  public static readonly cmdRegex:RegExp = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
+  /**
+   * Default light and dark themes
+   */
+  public static readonly defaultTheme:Themes = {
     light: {
       color: 'black',
       colorSecondary: 'black',
@@ -51,6 +57,15 @@ export default class Markugen
       fontFamilyHeaders: 'Georgia Pro, Crimson, Georgia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
     }
   };
+
+  /**
+   * Contains the options that were given on construction
+   */
+  public readonly options:Options;
+  /**
+   * Root path to the Markugen package
+   */
+  public readonly root:string;
 
   /**
    * Constructs a new instance with the given options
@@ -87,7 +102,7 @@ export default class Markugen
 
     this.options.includeHidden = options.includeHidden ? true : false;
     this.options.clearOutput = options.clearOutput ? true : false;
-    this.options.title = options.title ? options.title : 'Markugen v' + this.version;
+    this.options.title = options.title ? options.title : 'Markugen v' + Markugen.version;
     this.options.toc = options.toc !== undefined ? options.toc : 3;
     this.setTheme();
     this.checkFavicon();
@@ -146,12 +161,12 @@ export default class Markugen
    */
   private setTheme(themes?:Themes)
   {
-    if (!themes) this.options.theme = this.defaultTheme;
+    if (!themes) this.options.theme = Markugen.defaultTheme;
     else 
     {
       this.options.theme = {
-        light: themes.light ? {...this.defaultTheme.light, ...themes.light} : this.defaultTheme.light, 
-        dark: themes.dark ? {...this.defaultTheme.dark, ...themes.dark} : this.defaultTheme.dark, 
+        light: themes.light ? {...Markugen.defaultTheme.light, ...themes.light} : Markugen.defaultTheme.light, 
+        dark: themes.dark ? {...Markugen.defaultTheme.dark, ...themes.dark} : Markugen.defaultTheme.dark, 
       };
     }
   }

@@ -608,6 +608,43 @@ class Markugen
     const box = element.getBoundingClientRect();
     return box.top < window.innerHeight && box.bottom >= 0;
   }
+
+  copyToClipboard(id, feedback = null)
+  {
+    let e = document.getElementById(id); 
+    if(e) 
+    { 
+      const text = e.innerText || e.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        if (feedback)
+        {
+          const html = feedback.innerHTML;
+          feedback.innerHTML = 'Copied!';
+          setTimeout(() => feedback.innerHTML = html, 1000);
+        }
+      }); 
+    }
+  }
+  saveToFile(id, filename, feedback = null)
+  {
+    let e = document.getElementById(id); 
+    if(e) 
+    { 
+      const text = e.innerText || e.textContent;
+      const link = document.createElement('a');
+      const file = new Blob([text], { type: 'text/plain' });
+      link.href = URL.createObjectURL(file);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      if (feedback)
+      {
+        const html = feedback.innerHTML;
+        feedback.innerHTML = 'Saved!';
+        setTimeout(() => feedback.innerHTML = html, 1000);
+      }
+    }
+  }
     
   markugen = {{ markugen }};
   sitemap = {{ sitemap }};

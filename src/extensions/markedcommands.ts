@@ -14,20 +14,18 @@ export interface Options {
  * within code blocks.
  * @returns the marked extension
  */
-export default function markedCode(options:Options):MarkedExtension
+export default function markedCommands(options:Options):MarkedExtension
 {
   return {
-    walkTokens: (token) => code(token, options),
+    walkTokens: (token) => commands(token, options),
   };
 }
 
-function code(token:Token, options:Options)
+function commands(token:Token, options:Options)
 {
   if (token.type !== 'code') return;
 
-  const regex = /^markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
-  const match = token.text.match(regex);
-  //console.dir(match)
+  const match = token.text.match(Markugen.cmdRegex);
   if (match && match.groups && match.groups.cmd && match.groups.args)
   {
     if (match.groups.cmd === 'exec')
