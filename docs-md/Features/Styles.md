@@ -12,7 +12,7 @@ The following stylesheet shows all of the styles that will be provided to
 your generated files:
 
 ```css
-markugen.import ../templates/markugen.template.css
+markugen.import ../../templates/markugen.template.css
 ```
 
 > [!NOTE]

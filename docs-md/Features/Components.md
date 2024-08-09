@@ -120,17 +120,17 @@ block with data from executing that command.
 #### markugen.import
 The `markugen.import` command will import a text file into the code block. The
 following is an example of the `index.md` markdown file used to generate 
-[the home page of this documentation](./index.md).
+[the home page of this documentation](../index.md).
 
 ~~~md
-markugen.import index.md
+markugen.import ../index.md
 ~~~
 
 #### markugen.exec
 The `markugen.exec` command will execute a shell command and populate the code
-block with the output from the execution. The following example used the
-output of `dir` at build time.
+block with the output from the execution. The following example executes the
+`echo` command with a string:
 
 ~~~
-markugen.exec dir
+markugen.exec echo Hello World!
 ~~~

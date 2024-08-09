@@ -1,6 +1,5 @@
 [
-  { "name" : "index", "title": "Home" },
-  { "name" : "Options" },
-  { "name" : "Components", "toc": 4 },
-  { "name" : "Styles", "toc": 4 }
+  { "name" : "index", "title": "Introduction" },
+  { "name" : "Getting-Started" },
+  { "name" : "Features" }
 ]

@@ -16,6 +16,8 @@ function docs()
   const mark = new Markugen({
     input: 'docs-md',
     output: 'docs',
+    assets: 'examples',
+    exclude: 'examples',
     clearOutput: true,
   });
   mark.generate();

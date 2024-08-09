@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import Generator from './generator';
 import { version, name } from '../package.json';
 import { Options, Themes } from './options';
+import { timeFormat } from './utils';
 
 export interface OutputLabel {
   label: string,
@@ -66,6 +67,10 @@ export default class Markugen
    * Root path to the Markugen package
    */
   public readonly root:string;
+  /**
+   * The generate start time for recording elapsed time
+   */
+  private startTime:[number,number]|undefined;
 
   /**
    * Constructs a new instance with the given options
@@ -108,6 +113,7 @@ export default class Markugen
     this.checkFavicon();
     this.checkCss();
     this.checkJs();
+    this.checkExcluded();
   }
 
   /**
@@ -120,6 +126,53 @@ export default class Markugen
   }
 
   /**
+   * Checks to see if the path is excluded.
+   * @param path the path to check for exclusion
+   * @returns true if the path is excluded, false otherwise
+   */
+  public isExcluded(path:string):boolean
+  {
+    if (!this.options.exclude) return false;
+    for(const exclude of this.options.exclude as string[])
+      if (path.indexOf(exclude) !== -1) 
+        return true;
+    return false;
+  }
+
+  /**
+   * Checks that the files are relative to the input directory and filters
+   * out the ones that are not. Also resolves each path.
+   * @param files the files to check for relativeness
+   * @returns the new files with non-relative files removed
+   */
+  private filterRelative(files:string[])
+  {
+    const filtered = files.filter((file) => {
+      if (!this.isRelative(file))
+      {
+        this.warning(`Given file is not relative to input directory [${file}]`);
+        return false;
+      }
+      return true;
+    });
+    // resolve to full paths
+    for (let i = 0; i < filtered.length; i++) 
+      filtered[i] = path.resolve(this.inputDir, filtered[i]);
+    return filtered;
+  }
+
+  /**
+   * Checks the validity of the excluded files
+   */
+  private checkExcluded()
+  {
+    if (this.options.exclude)
+    {
+      if (!Array.isArray(this.options.exclude)) this.options.exclude = [this.options.exclude];
+      this.options.exclude = this.filterRelative(this.options.exclude);
+    }
+  }
+  /**
    * Checks the validity of the js files
    */
   private checkJs()
@@ -127,14 +180,7 @@ export default class Markugen
     if (this.options.js)
     {
       if (!Array.isArray(this.options.js)) this.options.js = [this.options.js];
-      this.options.js = this.options.js.filter((file) => {
-        if (!this.isRelative(file))
-        {
-          this.warning(`Given js file is not relative to input directory [${file}]`);
-          return false;
-        }
-        return true;
-      });
+      this.options.js = this.filterRelative(this.options.js);
     }
   }
   /**
@@ -145,14 +191,7 @@ export default class Markugen
     if (this.options.css)
     {
       if (!Array.isArray(this.options.css)) this.options.css = [this.options.css];
-      this.options.css = this.options.css.filter((file) => {
-        if (!this.isRelative(file))
-        {
-          this.warning(`Given css file is not relative to input directory [${file}]`);
-          return false;
-        }
-        return true;
-      });
+      this.options.css = this.filterRelative(this.options.css);
     }
   }
   /**
@@ -202,7 +241,12 @@ export default class Markugen
    */
   public generate():string|undefined
   {
-    return new Generator(this).generate();
+    this.startTime = process.hrtime();
+    const out = new Generator(this).generate();
+    const end = process.hrtime(this.startTime);
+    const ms = end[0] * 1000 + end[1] / 1000000;
+    this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));
+    return out;
   }
 
   /**

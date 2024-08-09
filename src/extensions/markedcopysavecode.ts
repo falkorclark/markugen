@@ -33,7 +33,6 @@ function code(token:Tokens.Code):string|false
   return `<div class="markugen-code">
   <div class="markugen-code-toolbar">
     <div class="markugen-code-title">${file ? file : '.' + token.lang}</div>
-    <div class="markugen-spacer"></div>
   ${copy(id)}
   ${file ? save(id, file) : ''}
   </div>

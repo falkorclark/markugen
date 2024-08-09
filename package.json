@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
   "contributors": [],
   "license": "MIT",
   "engines": {
-    "node": "^20.11.1"
+    "node": ">=20.11.1"
   },
   "keywords": [
     "markdown",
@@ -37,7 +37,10 @@
     "documentation",
     "vuepress",
     "vue",
-    "nextra"
+    "nextra",
+    "markdown-to-html",
+    "md",
+    "md-to-html"
   ],
   "scripts": {
     "start": "node --import tsx src/bin/main.ts",
