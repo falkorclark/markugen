@@ -39,7 +39,7 @@ of the major features are listed below:
 * Website generation
 * Static HTML generation (no need for a server)
 * Reactive website sitemap and Table of Contents
-* [Markdown Components](Components.md):
+* [Markdown Components](./Features/Components.md):
   * Admonitions/Callouts (GitHub flavored)
   * Tabs
   * Tables

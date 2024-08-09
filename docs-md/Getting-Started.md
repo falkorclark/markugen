@@ -1,19 +1,12 @@
 # Getting Started
-This section of the documentation will walk you through a simple project
-from start to finish. You will setup a website with four pages including
-nested pages. 
-
-The complete set of files you will generate during this example can be found 
-in the [examples](https://github.com/falkorclark/markugen/tree/main/docs-md/examples) 
-folder on GitHub or in your `node_modules/markugen/docs-md/examples` directory 
-of your project that has Markugen installed.
-
-Additionally, all the files are provided with this documentation in the
-[examples](./examples) folder.
+To get started using Markugen in your project, you will need to first
+install Markugen as a dependency. It is likely that you will be generating
+your documentation as a build/publish step; therefore, you may want to add
+`--save-dev` to the following commands to add it as a dev dependency.
 
 ## Install Markugen
-The first step is to install Markugen within your NodeJS project by running
-one of the following commands:
+To install Markugen within your NodeJS project, execute one of the following
+commands:
 
 ```bash
 npm install markugen
@@ -23,49 +16,55 @@ yarn add markugen
 pnpm add markugen
 ```
 
-## Create Folder Structure
-The next step will be to setup a folder structure for your documentation
-where we will put the markdown files. Begin by creating the
-following folder structure within your project:
+## Build Your Documentation
+This section assumes you already have a markdown file or a set of markdown 
+files. To generate your documentation, it is quite simple, just create an
+instance of the `Markugen` class and call `generate`. The following code
+assumes your markdown files are in a directory called `markdown`. If your
+markdown files are in a different folder, just change the `input` option to
+point to the location of the folder containing your markdown files.
 
-* docs
-  * subsection
+```ts
+// setup markugen and tell it where to find your files
+const mark = new Markugen({
+  input: 'markdown',
+});
 
-## Create Markdown Files
-Now that we have a folder structure, let's begin adding markdown files to
-the folders. 
-
-### Home Page
-The first file will be created in the `docs` directory. Download
-the following file or copy and paste the markdown into a file named
-`Home.md` and place the file in the `docs` directory.
-
-```md
-markugen.import examples/Home.md
+// generate the documentation
+mark.generate();
 ```
 
-### Subsection Page
-When creating subfolders on your website, you will need to provide a markdown
-file at the same level as the folder with the same name if you would like the
-section to have a page. For this example, we will give the `subsection` folder
-its own page by adding a markdown file named `subsection.md` that we will 
-place in the `docs` folder. 
+Markugen will output the HTML files to a folder in your current working 
+directory or `cwd` called `output`. If you would like to change the output
+location, provide Markugen with the output location via the `output` option
+like so:
 
-Download the following file or copy and paste the markdown into a file named
-`subsection.md` and place the file in the `docs` directory.
+```ts
+// setup markugen and tell it where to find your files
+const mark = new Markugen({
+  input: 'markdown',
+  output: 'docs',
+});
 
-```md
-markugen.import examples/subsection.md
+// generate the documentation
+mark.generate();
 ```
 
-### Examples Page
-The last page we will add is the examples page. This page will be a part of
-the subsection we created; therefore, it will be placed in the `subsection`
-folder.
+That's all folks!
 
-Download the following file or copy and paste the markdown into a file named
-`examples.md` and place the file in the `docs/subsection` directory.
+# Additional Options
+Most of Markugen's options have default values associated with them. As a 
+matter of fact, the only required option is the `input` option; all other
+options have defaults. A few things to note about the defaults:
 
-```md
-markugen.import examples/subsection/examples.md
-```
+* The file name will be used as the title of each page
+* The site title will be `Markugen vX.X.X` and should be overridden
+* Page order is defaulted to alphabetical order
+
+> [!TIP]
+> Additional [options](./Features/Options.md) can be found in the 
+> [Features Section](./Features.md) of this documentation.
+
+> [!TIP]
+> There is a full working example provided from start to finish that you can
+> follow along with found [here](./Getting-Started/Example.md).

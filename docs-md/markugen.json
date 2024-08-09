@@ -1,7 +1,5 @@
 [
-  { "name" : "index", "title": "Home" },
+  { "name" : "index", "title": "Introduction" },
   { "name" : "Getting-Started" },
-  { "name" : "Options" },
-  { "name" : "Components", "toc": 4 },
-  { "name" : "Styles", "toc": 4 }
+  { "name" : "Features" }
 ]
