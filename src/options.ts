@@ -26,6 +26,13 @@ export interface Options {
    */
   output?:string,
   /**
+   * List of files or folders to exclude when looking for markdown files in
+   * the {@link input} directory. This can be a single path or an array of
+   * paths to exclude. The paths should be relative to the {@link input}
+   * directory.
+   */
+  exclude?:string|string[],
+  /**
    * The title to use for the navbar [default: 'Markugen vX.X.X']
    */
   title?:string,

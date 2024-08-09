@@ -304,7 +304,8 @@ export default class Generator
     for(const child of mark)
     {
       let file:string|undefined = path.resolve(dir, child.name + '.md');
-      if (!fs.existsSync(file))
+      if (this.mark.isExcluded(file)) file = undefined;
+      else if (!fs.existsSync(file))
       {
         file = path.resolve(dir, child.name);
         if (!fs.existsSync(file))
@@ -333,13 +334,15 @@ export default class Generator
     const files:fs.Dirent[] = fs.readdirSync(dir, {withFileTypes: true});
     for(const file of files)
     {
-      if (!this.mark.options.includeHidden && file.name.startsWith('.')) continue;
+      const fullpath = path.resolve(file.parentPath, file.name);
+      if (this.mark.isExcluded(fullpath) || (!this.mark.options.includeHidden && file.name.startsWith('.'))) 
+        continue;
       // push directories for later
       if (file.isDirectory()) subs.push(file);
       // add missing children
       else if (file.isFile() && /\.md$/i.test(file.name))
       { 
-        const entry = path.relative(this.mark.inputDir, path.resolve(file.parentPath, file.name));
+        const entry = path.relative(this.mark.inputDir, fullpath);
         this.addChild(parent, entry, file.name);
       }
       
@@ -458,8 +461,7 @@ export default class Generator
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
-        const resolved = path.resolve(this.mark.inputDir, file);
-        try { styles += '\n' + fs.readFileSync(resolved, {encoding:'utf8'}) + '\n'; }
+        try { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
         catch(e) { this.mark.warning(`Given css file cannot be read [${file}]`); }
       }
     }
@@ -481,8 +483,7 @@ export default class Generator
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
-        const resolved = path.resolve(this.mark.inputDir, file);
-        try { scripts += '\n' + fs.readFileSync(resolved, {encoding:'utf8'}) + '\n'; }
+        try { scripts += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
         catch(e) { this.mark.warning(`Given js file cannot be read [${file}]`); }
       }
     }

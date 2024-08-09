@@ -113,9 +113,6 @@ th {
 .markugen-hidden {
   display: none;
 }
-.markugen-spacer {
-  flex: 1;
-}
 
 /* main content styles */
 #markugen-body {
@@ -405,12 +402,16 @@ th {
   min-height: 30px;
   max-height: 30px;
 }
-.markugen-code-content {
-  padding: 10px;
-  margin: 0px;
+.markugen-code-title {
+  flex: 1;
 }
 .markugen-code-copy, .markugen-code-save {
   cursor: pointer;
+}
+.markugen-code-content {
+  padding: 10px;
+  margin: 0px;
+  white-space: pre-wrap;
 }
 :not(pre) > code {
   background-color: var(--markugen-bg-color-secondary);
@@ -520,12 +521,17 @@ th {
     color: black !important;
     background-color: white !important;
     box-shadow: none !important;
+    border-color: black !important;
+  }
+  h1, h2 {
+    border-bottom: 1px solid black !important;
   }
   .markugen-tabs {
     box-shadow: none !important;
   }
   #markugen-navbar, #markugen-content-left, 
-  #markugen-content-right, #markugen-prev-next-container {
+  #markugen-content-right, #markugen-prev-next-container,
+  #markugen-toc, #markugen-sitemap-menu {
     display: none !important;
   }
   #markugen-content {
@@ -555,7 +561,7 @@ th {
   .markdown-alert {
     box-shadow: none !important;
   }
-  pre:has(code) {
+  .markugen-code {
     box-shadow: none !important;
   }
 }

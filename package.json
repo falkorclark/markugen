@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
@@ -19,7 +19,8 @@
     "lib",
     "templates",
     "docs",
-    "docs-md"
+    "docs-md",
+    "examples"
   ],
   "type": "commonjs",
   "author": "Falkor Clark <falkorclark@gmail.com>",
@@ -37,7 +38,10 @@
     "documentation",
     "vuepress",
     "vue",
-    "nextra"
+    "nextra",
+    "markdown-to-html",
+    "md",
+    "md-to-html"
   ],
   "scripts": {
     "start": "node --import tsx src/bin/main.ts",
