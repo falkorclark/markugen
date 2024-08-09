@@ -128,9 +128,9 @@ markugen.import ../index.md
 
 #### markugen.exec
 The `markugen.exec` command will execute a shell command and populate the code
-block with the output from the execution. The following example used the
-output of `dir` at build time.
+block with the output from the execution. The following example executes the
+`echo` command with a string:
 
 ~~~
-markugen.exec echo "Hello World"
+markugen.exec echo Hello World!
 ~~~

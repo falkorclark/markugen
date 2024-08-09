@@ -2,7 +2,7 @@
 This page shows off some of the features/components available in Markugen.
 
 ## Admonitions/Callouts
-Markugen provides a set of admonitions using GitHub-flavored syntax. There are
+Markugen provides a set of admonitions using GitHub flavored syntax. There are
 five (5) types of callouts shown below:
 
 > [!NOTE]

@@ -38,6 +38,7 @@ of the major features are listed below:
 * Markdown to HTML
 * Website generation
 * Static HTML generation (no need for a server)
+* Fully typed with [TypeScript](https://www.typescriptlang.org/)
 * Reactive website sitemap and Table of Contents
 * [Markdown Components](./Features/Components.md):
   * Admonitions/Callouts (GitHub flavored)

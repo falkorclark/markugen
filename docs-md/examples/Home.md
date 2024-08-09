@@ -30,7 +30,7 @@ repudiated and annoyances accepted. The wise man therefore always holds in
 these matters to this principle of selection: he rejects pleasures to secure 
 other greater pleasures, or else he endures pains to avoid worse pains.
 
-## Help
+# Help
 If you need any help with this website, please contact Falkor Clark at
 [falkorclark@gmail.com](mailto:falkorclark@gmail.com) or submit an issue
 on GitHub at 

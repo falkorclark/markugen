@@ -16,9 +16,9 @@ yarn add markugen
 pnpm add markugen
 ```
 
-## Build Your Documentation
+## Build Your Website
 This section assumes you already have a markdown file or a set of markdown 
-files. To generate your documentation, it is quite simple, just create an
+files. To generate your website, it is quite simple, just create an
 instance of the `Markugen` class and call `generate`. The following code
 assumes your markdown files are in a directory called `markdown`. If your
 markdown files are in a different folder, just change the `input` option to
@@ -30,7 +30,7 @@ const mark = new Markugen({
   input: 'markdown',
 });
 
-// generate the documentation
+// generate the website
 mark.generate();
 ```
 
@@ -46,7 +46,7 @@ const mark = new Markugen({
   output: 'docs',
 });
 
-// generate the documentation
+// generate the website
 mark.generate();
 ```
 
@@ -63,8 +63,6 @@ options have defaults. A few things to note about the defaults:
 
 > [!TIP]
 > Additional [options](./Features/Options.md) can be found in the 
-> [Features Section](./Features.md) of this documentation.
-
-> [!TIP]
-> There is a full working example provided from start to finish that you can
+> [Features Section](./Features.md) of this documentation. There is also a full 
+> working example provided from start to finish that you can
 > follow along with found [here](./Getting-Started/Example.md).
