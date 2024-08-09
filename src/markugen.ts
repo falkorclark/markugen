@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import Generator from './generator';
 import { version, name } from '../package.json';
 import { Options, Themes } from './options';
+import { timeFormat } from './utils';
 
 export interface OutputLabel {
   label: string,
@@ -66,6 +67,10 @@ export default class Markugen
    * Root path to the Markugen package
    */
   public readonly root:string;
+  /**
+   * The generate start time for recording elapsed time
+   */
+  private startTime:[number,number]|undefined;
 
   /**
    * Constructs a new instance with the given options
@@ -236,7 +241,12 @@ export default class Markugen
    */
   public generate():string|undefined
   {
-    return new Generator(this).generate();
+    this.startTime = process.hrtime();
+    const out = new Generator(this).generate();
+    const end = process.hrtime(this.startTime);
+    const ms = end[0] * 1000 + end[1] / 1000000;
+    this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));
+    return out;
   }
 
   /**
