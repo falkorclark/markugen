@@ -19,8 +19,7 @@
     "lib",
     "templates",
     "docs",
-    "docs-md",
-    "examples"
+    "docs-md"
   ],
   "type": "commonjs",
   "author": "Falkor Clark <falkorclark@gmail.com>",
