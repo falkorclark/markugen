@@ -47,21 +47,23 @@
   ],
   "scripts": {
     "start": "node --import tsx src/bin/cli.ts",
-    "build": "node --import tsx src/bin/build.ts",
+    "build": "npm run lint && npm run test && node --import tsx src/bin/build.ts",
     "test": "node --import tsx src/bin/test.ts",
     "prepublishOnly": "npm run build",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "tsc": "tsc -p tsconfig.json"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@stylistic/eslint-plugin": "^2.6.2",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.14.10",
     "@types/shelljs": "^0.8.15",
     "@types/yargs": "^17.0.32",
-    "@typescript-eslint/eslint-plugin": "^7.3.1",
-    "@typescript-eslint/parser": "^7.3.1",
     "eslint": "^8.57.0",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1"
   },
   "dependencies": {
     "colors": "^1.4.0",

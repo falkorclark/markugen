@@ -4,7 +4,8 @@ export { Theme, Themes } from './themes';
 /**
  * Markugen configuration options
  */
-export interface Options {
+export interface Options 
+{
   /**
    * The format of the {@link input} and {@link output}. If string is used for
    * the format, then the input is assumed to be a markdown string, else it
@@ -37,7 +38,8 @@ export interface Options {
    */
   title?:string,
   /**
-   * If true, all pages not custom configured will inherit the site {@link title}.
+   * If true, all pages not custom configured will inherit 
+   * the site {@link title}.
    */
   inheritTitle?:boolean,
   /**

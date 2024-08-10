@@ -18,23 +18,24 @@ import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
 
-export interface PageConfig {
+export interface PageConfig 
+{
   name:string,
   toc?:number,
   title?:string,
   collapsible?:boolean,
 }
 
-export interface Page extends PageConfig {
+export interface Page extends PageConfig 
+{
   href?:string, 
-  children?: {
-    [path:string]:Page,
-  } 
+  children?: Record<string, Page>,
 }
 
-export interface Sitemap extends Page {
-  home?:string,
-  footer?:string,
+export interface Sitemap extends Page 
+{
+  home:string,
+  footer:string,
 }
 
 export default class Generator
@@ -81,9 +82,10 @@ export default class Generator
     this.mark = mark;
     this.sitemap = { 
       name: 'sitemap', 
-      title: mark.options.title!, 
+      title: mark.options.title, 
       toc: mark.options.toc,
       footer: mark.options.footer,
+      home: '',
     };
     this.templates = path.resolve(mark.root, 'templates');
     if (!fs.existsSync(this.templates)) 
@@ -97,8 +99,8 @@ export default class Generator
    */
   public generate():string|undefined
   {
-    this.sitemap.title = this.mark.options.title!;
-    this.sitemap.toc = this.mark.options.toc!;
+    this.sitemap.title = this.mark.options.title;
+    this.sitemap.toc = this.mark.options.toc;
     this.sitemap.home = this.mark.options.home;
     this.sitemap.children = {};
     this.style = undefined;
@@ -113,8 +115,8 @@ export default class Generator
 
   private generateString():string|undefined
   {
-    const name = this.mark.options.output!.replace(/\.html$/i, '');
-    this.sitemap.home = this.mark.options.output!;
+    const name = this.mark.options.output.replace(/\.html$/i, '');
+    this.sitemap.home = this.mark.options.output;
     this.addChild(this.sitemap, name + '.md', name);
     // write and set the styles
     this.writeStyles();
@@ -123,7 +125,7 @@ export default class Generator
     // set the hrefs
     this.setHrefs(this.sitemap);
     // create the html
-    return this.writeHtml(this.sitemap.children![name + '.md']);
+    return this.sitemap.children ? this.writeHtml(this.sitemap.children[name + '.md']) : undefined;
   }
   /**
    * Generates the documentation to the output folder as files
@@ -160,7 +162,7 @@ export default class Generator
     this.mark.group(colors.green('Generating:'), 'html');
     this.writeChildren(this.sitemap);
     this.mark.groupEnd();
-    const home = path.resolve(this.mark.output, this.sitemap.home!);
+    const home = path.resolve(this.mark.output, this.sitemap.home);
     this.mark.log('Generating Finished:', home);
     return home;
   }
@@ -172,7 +174,8 @@ export default class Generator
   {
     // write out the sitemap
     this.script = fs.readFileSync(path.resolve(this.templates, 'markugen.template.js'), {encoding: 'utf8'});
-    this.script = this.script.replace(/{{ *((sitemap)|(markugen)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => {
+    this.script = this.script.replace(/{{ *((sitemap)|(markugen)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => 
+{
       if (p2) return JSON.stringify(this.sitemap, null, 2);
       if (p3)
       {
@@ -207,10 +210,11 @@ export default class Generator
   {
     // write out the styles
     this.style = fs.readFileSync(path.resolve(this.templates, 'markugen.template.css'), {encoding: 'utf8'});
-    this.style = this.style.replace(/{{ *((light)|(dark)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => {
+    this.style = this.style.replace(/{{ *((light)|(dark)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => 
+{
       let theme = undefined;
-      if (p2) theme = this.mark.options.theme!.light;
-      if (p3) theme = this.mark.options.theme!.dark;
+      if (p2) theme = this.mark.options.theme.light;
+      if (p3) theme = this.mark.options.theme.dark;
       if (theme)
       {
         return `--markugen-color: ${theme.color};
@@ -248,12 +252,14 @@ export default class Generator
   {
     if (this.mark.options.assets)
     {
-      if (Array.isArray(this.mark.options.assets)) this.assets.push(...this.mark.options.assets);
+      if (Array.isArray(this.mark.options.assets)) 
+        this.assets.push(...this.mark.options.assets);
       else this.assets.push(this.mark.options.assets);
     }
     if (this.mark.options.favicon) this.assets.push(this.mark.options.favicon);
 
-    if (this.assets.length > 0) this.mark.group(colors.green('Copying:'), 'assets');
+    if (this.assets.length > 0) 
+      this.mark.group(colors.green('Copying:'), 'assets');
     for(const asset of this.assets) 
     {
       // don't copy URLs
@@ -315,7 +321,12 @@ export default class Generator
         }
       }
       // markdown file exists
-      if (file) this.addChild(parent, path.relative(this.mark.inputDir, file), child.name, child);
+      if (file) this.addChild(
+        parent, 
+        path.relative(this.mark.inputDir, file), 
+        child.name, 
+        child
+      );
     }
 
     // handle single file
@@ -375,7 +386,7 @@ export default class Generator
    * @param config the config if it has one
    * @returns the page that was added or already there
    */
-  private addChild(parent:Page, entry:string, name:string, config?:PageConfig):Page
+  private addChild(parent:Page, entry:string, name:string, config?:PageConfig)
   {
     // init the children
     if (!parent.children) parent.children = {};
@@ -383,12 +394,14 @@ export default class Generator
     if (!(entry in parent.children))
     {
       const page:Page = config ? {
-        title: this.mark.options.inheritTitle ? this.sitemap.title : this.title(name),
+        title: this.mark.options.inheritTitle ? 
+          this.sitemap.title : this.title(name),
         toc: parent.toc,
         ...config 
       } : {
         name: name,
-        title: this.mark.options.inheritTitle ? this.sitemap.title : this.title(name),
+        title: this.mark.options.inheritTitle ? 
+          this.sitemap.title : this.title(name),
         toc: parent.toc,
       };
       parent.children[entry] = page;
@@ -409,7 +422,8 @@ export default class Generator
       {
         if (/\.md$/i.test(child))
         {
-          page.children[child].href = child.replace(/(\\)|(\.md$)/gi, (match:string, p1:string, p2:string) => {
+          page.children[child].href = child.replace(/(\\)|(\.md$)/gi, (match:string, p1:string, p2:string) => 
+{
             if (p1) return '/';
             if (p2) return '.html';
             return match;
@@ -421,7 +435,7 @@ export default class Generator
       if (page === this.sitemap && !this.sitemap.home)
       {
         const vals = Object.values(page.children);
-        this.sitemap.home = vals.length > 0 ? vals[0].href : '';
+        this.sitemap.home = vals.length > 0 && vals[0].href ? vals[0].href : '';
       }
     }
   }
@@ -453,16 +467,20 @@ export default class Generator
     if (!this.mark.options.embed) return undefined;
     let styles = this.style ? this.style : '';
     // add string styles
-    if (this.mark.options.style) styles += '\n' + this.mark.options.style + '\n';
+    if (this.mark.options.style) 
+      styles += '\n' + this.mark.options.style + '\n';
     // embed styles from files
     if (this.mark.options.css)
     {
-      const files = Array.isArray(this.mark.options.css) ? this.mark.options.css : [this.mark.options.css];
+      const files = Array.isArray(this.mark.options.css) ? 
+        this.mark.options.css : [this.mark.options.css];
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
-        try { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
-        catch(e) { this.mark.warning(`Given css file cannot be read [${file}]`); }
+        try 
+        { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
+        catch(e) 
+        { this.mark.warning(`Given css file cannot be read [${file}]`); }
       }
     }
     return styles === '' ? undefined : styles;
@@ -479,7 +497,8 @@ export default class Generator
     // embed js from files
     if (this.mark.options.js)
     {
-      const files = Array.isArray(this.mark.options.js) ? this.mark.options.js : [this.mark.options.js];
+      const files = Array.isArray(this.mark.options.js) ? 
+        this.mark.options.js : [this.mark.options.js];
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
@@ -493,7 +512,8 @@ export default class Generator
   /**
    * Creates the html file for the given page
    * @param page the page for the markdown file
-   * @returns the file path or the html as a string, undefined if nothing was created
+   * @returns the file path or the html as a string, undefined 
+   * if nothing was created
    */
   private writeHtml(page:Page):string|undefined
   {
@@ -510,11 +530,14 @@ export default class Generator
       depth = '../' + depth;
     }
 
-    const file = this.mark.isInputString ? this.mark.output : path.resolve(this.mark.output, page.href);
+    const file = this.mark.isInputString ? this.mark.output : 
+      path.resolve(this.mark.output, page.href);
     this.mark.group(colors.green('Generating:'), file);
     // full path to markdown file
-    const md = this.mark.isInputString ? file : path.resolve(this.mark.inputDir, page.href.replace(/\.html$/, '.md'));
-    const text = this.mark.isInputString ? this.mark.input : fs.readFileSync(md, {encoding: 'utf8'});
+    const md = this.mark.isInputString ? file : 
+      path.resolve(this.mark.inputDir, page.href.replace(/\.html$/, '.md'));
+    const text = this.mark.isInputString ? this.mark.input : 
+      fs.readFileSync(md, {encoding: 'utf8'});
 
     // create marked and extensions
     const marked = new Marked(
@@ -526,7 +549,8 @@ export default class Generator
       gfmHeadingId(),
       markedHighlight({
         langPrefix: 'hljs language-',
-        highlight(code, lang) {
+        highlight(code, lang) 
+{
           const language = hljs.getLanguage(lang) ? lang : 'plaintext';
           return hljs.highlight(code, { language }).value;
         }
@@ -541,8 +565,10 @@ export default class Generator
         title: page.title,
         style: this.styles,
         script: this.scripts,
-        css: this.css.map((value) => URL.canParse(value) ? value : depth + value),
-        js: this.js.map((value) => URL.canParse(value) ? value : depth + value),
+        css: this.css.map((value) => 
+          URL.canParse(value) ? value : depth + value),
+        js: this.js.map((value) => 
+          URL.canParse(value) ? value : depth + value),
         link: this.mark.options.favicon ? {
           href: depth + this.mark.options.favicon, 
           rel: 'icon', 
@@ -565,7 +591,8 @@ export default class Generator
    */
   private title(file:string)
   {
-    return file.replace(/(^\.+)|(\.md$)|(_|-|\.)/ig, (match, p1, p2) => {
+    return file.replace(/(^\.+)|(\.md$)|(_|-|\.)/ig, (match, p1, p2) => 
+{
       if (p1 || p2) return '';
       return ' ';
     });

@@ -7,9 +7,10 @@ export const tabsDirective: DirectiveConfig = {
   level: 'container',
   marker: ':::',
   renderer: tabs,
-}
+};
 
-interface Tab {
+interface Tab 
+{
   name:string,
   label:string,
   content:string,
@@ -37,7 +38,7 @@ function tabs(this:RendererThis, token:Directive)
           label: ctoken.text,
           content: '',
           active: tabs.length === 0,
-        }
+        };
         tabs.push(current);
       }
       // else append to the current tab's content

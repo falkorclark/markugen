@@ -4,7 +4,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 import Markugen from '../markugen';
 
-export interface Options {
+export interface Options 
+{
   markugen:Markugen,
   file?:string,
 }

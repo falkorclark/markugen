@@ -2,13 +2,13 @@
 
 import Markugen, { Options } from '../markugen';
 import { hideBin } from 'yargs/helpers';
-import yargs, { options } from 'yargs';
+import yargs from 'yargs';
 import { version, name } from '../../package.json';
 
 // Handle startup
-function main()
+function main() 
 {
-  try
+  try 
   {
     const args = yargs(hideBin(process.argv))
       .help('h')
@@ -21,7 +21,8 @@ function main()
         },
         input: {
           alias: ['i'],
-          describe: 'the directory to locate the markdown files or a single file',
+          describe:
+            'the directory to locate the markdown files or a single file',
           type: 'string',
           demandOption: true,
         },
@@ -43,7 +44,8 @@ function main()
         },
         'inherit-title': {
           alias: ['it'],
-          describe: 'if true, all pages not custom configured will inherit the site title',
+          describe:
+            'if true, all pages not custom configured will inherit the site title',
           type: 'boolean',
         },
         footer: {
@@ -53,12 +55,14 @@ function main()
         },
         home: {
           alias: ['index'],
-          describe: 'sets the home page for the site, default uses the first root page',
+          describe:
+            'sets the home page for the site, default uses the first root page',
           type: 'string',
         },
         toc: {
-          describe: 'maximum header depth to output in the Table of Contents, values less than ' +
-                    'or equal to zero will hide the Table of Contents.',
+          describe:
+            'maximum header depth to output in the Table of Contents, values less than ' +
+            'or equal to zero will hide the Table of Contents.',
           type: 'number',
           default: 3,
         },
@@ -68,7 +72,8 @@ function main()
           type: 'boolean',
         },
         favicon: {
-          describe: 'relative path to an icon to use as the favicon, must be relative to the input directory',
+          describe:
+            'relative path to an icon to use as the favicon, must be relative to the input directory',
           type: 'string',
         },
         assets: {
@@ -77,7 +82,8 @@ function main()
           type: 'array',
         },
         script: {
-          describe: 'additional JavaScript to embed in the script tag at the end of the body',
+          describe:
+            'additional JavaScript to embed in the script tag at the end of the body',
           type: 'string',
         },
         js: {

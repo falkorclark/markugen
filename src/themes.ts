@@ -1,7 +1,8 @@
 /**
  * Theme options
  */
-export interface Theme {
+export interface Theme 
+{
   color?:string,
   colorSecondary?:string,
   bgColor?:string,
@@ -16,7 +17,8 @@ export interface Theme {
 /**
  * Light and dark themes
  */
-export interface Themes {
+export interface Themes 
+{
   light?:Theme,
   dark?:Theme,
 }

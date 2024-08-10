@@ -10,7 +10,8 @@ import { defaultThemes } from './themes';
 
 export * from './options';
 
-export interface OutputLabel {
+export interface OutputLabel 
+{
   label: string,
   color?: colors.Color,
   ignoreQuiet?: boolean,
@@ -38,7 +39,7 @@ export default class Markugen
   /**
    * Contains the options that were given on construction
    */
-  public readonly options:Options;
+  public readonly options:Required<Options>;
   /**
    * Root path to the Markugen package
    */
@@ -54,10 +55,31 @@ export default class Markugen
   public constructor(options:Options)
   {
     this.root = path.dirname(__dirname);
-    this.options = options;
+    
+    this.options = {
+      format: 'file',
+      output: './output',
+      exclude: [],
+      title: 'Markugen v' + Markugen.version,
+      inheritTitle: false,
+      footer: '',
+      home: '',
+      toc: 3,
+      embed: false,
+      favicon: '',
+      assets: [],
+      script: '',
+      js: [],
+      style: '',
+      css: [],
+      theme: defaultThemes,
+      includeHidden: false,
+      clearOutput: false,
+      quiet: false,
+      debug: false,
+      ...options,
+    };
 
-    // format should be done first
-    this.options.format = options.format !== undefined ? options.format : 'file';
     // string format implies embed
     if (this.options.format === 'string')
     {
@@ -78,13 +100,9 @@ export default class Markugen
       if (options.assets === undefined && fs.existsSync(path.resolve(this.inputDir, 'assets')))
         this.options.assets = ['assets'];
       // resolve output
-      this.options.output = path.resolve(options.output ? options.output : './output');
+      this.options.output = path.resolve(this.options.output);
     }
-
-    this.options.includeHidden = options.includeHidden ? true : false;
-    this.options.clearOutput = options.clearOutput ? true : false;
-    this.options.title = options.title ? options.title : 'Markugen v' + Markugen.version;
-    this.options.toc = options.toc !== undefined ? options.toc : 3;
+    
     this.setTheme();
     this.checkFavicon();
     this.checkCss();
@@ -123,7 +141,9 @@ export default class Markugen
    */
   private filterRelative(files:string[])
   {
-    const filtered = files.filter((file) => {
+    const filtered = files.filter((file) => 
+{
+      if (file === '') return false;
       if (!this.isRelative(file))
       {
         this.warning(`Given file is not relative to input directory [${file}]`);
@@ -142,33 +162,25 @@ export default class Markugen
    */
   private checkExcluded()
   {
-    if (this.options.exclude)
-    {
-      if (!Array.isArray(this.options.exclude)) this.options.exclude = [this.options.exclude];
-      this.options.exclude = this.filterRelative(this.options.exclude);
-    }
+    if (!Array.isArray(this.options.exclude)) 
+      this.options.exclude = [this.options.exclude];
+    this.options.exclude = this.filterRelative(this.options.exclude);
   }
   /**
    * Checks the validity of the js files
    */
   private checkJs()
   {
-    if (this.options.js)
-    {
-      if (!Array.isArray(this.options.js)) this.options.js = [this.options.js];
-      this.options.js = this.filterRelative(this.options.js);
-    }
+    if (!Array.isArray(this.options.js)) this.options.js = [this.options.js];
+    this.options.js = this.filterRelative(this.options.js);
   }
   /**
    * Checks the validity of the css files
    */
   private checkCss()
   {
-    if (this.options.css)
-    {
-      if (!Array.isArray(this.options.css)) this.options.css = [this.options.css];
-      this.options.css = this.filterRelative(this.options.css);
-    }
+    if (!Array.isArray(this.options.css)) this.options.css = [this.options.css];
+    this.options.css = this.filterRelative(this.options.css);
   }
   /**
    * Sets the appropriate themes based on the given values
@@ -180,8 +192,10 @@ export default class Markugen
     else 
     {
       this.options.theme = {
-        light: themes.light ? {...defaultThemes.light, ...themes.light} : defaultThemes.light, 
-        dark: themes.dark ? {...defaultThemes.dark, ...themes.dark} : defaultThemes.dark, 
+        light: themes.light ? 
+          {...defaultThemes.light, ...themes.light} : defaultThemes.light, 
+        dark: themes.dark ? 
+          {...defaultThemes.dark, ...themes.dark} : defaultThemes.dark, 
       };
     }
   }
@@ -193,7 +207,7 @@ export default class Markugen
     if (this.options.favicon && !this.isRelative(this.options.favicon))
     {
       this.warning(`Given favicon is not relative to the input directory [${this.options.favicon}]`);
-      this.options.favicon = undefined;
+      this.options.favicon = '';
     }
   }
   /**
@@ -247,7 +261,7 @@ export default class Markugen
   /**
    * @returns the path to the output directory
    */
-  public get output() { return this.options.output!; }
+  public get output() { return this.options.output; }
   /**
    * @returns true if hidden files and folders should be included
    */
@@ -261,7 +275,10 @@ export default class Markugen
   /**
    * Starts a console group
    */
-  public group(...args:any[]) { if(!this.options.quiet) console.group(...args); }
+  public group(...args:any[]) 
+  { 
+    if(!this.options.quiet) console.group(...args); 
+  }
   /**
    * Ends a console group
    */
@@ -276,9 +293,18 @@ export default class Markugen
     const ol = typeof label === 'string' ? {label: label} : label;
     if (!this.options.quiet && ol.ignoreQuiet !== true) 
     {
-      const color = ol.color ? ol.color : (ol.error ? colors.red : colors.green);
-      if (ol.error) ol.label ? console.error(color(ol.label), ...args) : console.error(...args);
-      else ol.label ? console.log(color(ol.label), ...args) : console.log(...args);
+      const color = ol.color ? ol.color : 
+        (ol.error ? colors.red : colors.green);
+      if (ol.error)
+      { 
+        if (ol.label) console.error(color(ol.label), ...args);
+        else console.error(...args);
+      }
+      else
+      { 
+        if (ol.label) console.log(color(ol.label), ...args);
+        else console.log(...args);
+      }
       // check if we should exit
       if (ol.error && ol.error.exit === true)
         process.exit(ol.error.code);
