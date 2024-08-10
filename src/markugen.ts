@@ -6,6 +6,9 @@ import Generator from './generator';
 import { version, name } from '../package.json';
 import { Options, Themes } from './options';
 import { timeFormat } from './utils';
+import { defaultThemes } from './themes';
+
+export * from './options';
 
 export interface OutputLabel {
   label: string,
@@ -31,33 +34,6 @@ export default class Markugen
    * Regular expression used for Markugen commands
    */
   public static readonly cmdRegex:RegExp = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
-  /**
-   * Default light and dark themes
-   */
-  public static readonly defaultTheme:Themes = {
-    light: {
-      color: 'black',
-      colorSecondary: 'black',
-      bgColor: 'white',
-      bgColorSecondary: '#e5e4e2',
-      borderColor: '#c0c0c0',
-      borderColorSecondary: 'black',
-      accentColor: '#1f6feb',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
-      fontFamilyHeaders: 'Georgia Pro, Crimson, Georgia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
-    },
-    dark: {
-      color: 'white',
-      colorSecondary: 'silver',
-      bgColor: '#423f3e',
-      bgColorSecondary: '#2b2b2b',
-      borderColor: '#404040',
-      borderColorSecondary: 'silver',
-      accentColor: '#a371f7',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
-      fontFamilyHeaders: 'Georgia Pro, Crimson, Georgia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
-    }
-  };
 
   /**
    * Contains the options that were given on construction
@@ -200,12 +176,12 @@ export default class Markugen
    */
   private setTheme(themes?:Themes)
   {
-    if (!themes) this.options.theme = Markugen.defaultTheme;
+    if (!themes) this.options.theme = defaultThemes;
     else 
     {
       this.options.theme = {
-        light: themes.light ? {...Markugen.defaultTheme.light, ...themes.light} : Markugen.defaultTheme.light, 
-        dark: themes.dark ? {...Markugen.defaultTheme.dark, ...themes.dark} : Markugen.defaultTheme.dark, 
+        light: themes.light ? {...defaultThemes.light, ...themes.light} : defaultThemes.light, 
+        dark: themes.dark ? {...defaultThemes.dark, ...themes.dark} : defaultThemes.dark, 
       };
     }
   }

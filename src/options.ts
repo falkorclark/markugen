@@ -50,10 +50,6 @@ export interface Options {
    */
   home?:string,
   /**
-   * If true, allows for raw html to be used in markdown
-   */
-  allowHtml?:boolean,
-  /**
    * Maximum header depth to output in the Table of Contents. Values less than
    * or equal to zero will hide the Table of Contents. [default: 3]
    */

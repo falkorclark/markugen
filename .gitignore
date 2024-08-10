@@ -3,4 +3,5 @@ node_modules/
 output/
 lib/
 docs/
+test/
 tests/
