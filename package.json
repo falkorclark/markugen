@@ -1,10 +1,10 @@
 {
   "name": "markugen",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/falkorclark/markugen.git"
+    "url": "https://github.com/falkorclark/markugen.git"
   },
   "homepage": "https://falkorclark.com/markugen/index.html",
   "bin": {
@@ -48,10 +48,9 @@
   "scripts": {
     "start": "node --import tsx src/bin/cli.ts",
     "build": "node --import tsx src/bin/build.ts",
-    "test": "node --import tsx src/bin/test.ts",
-    "prepublishOnly": "npm run lint && npm run test && npm run build",
-    "lint": "eslint src",
-    "tsc": "tsc -p tsconfig.json"
+    "test": "npm run lint && node --import tsx src/bin/test.ts",
+    "prepublishOnly": "npm run test && npm run build",
+    "lint": "eslint src"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
