@@ -1,12 +1,15 @@
 {
   "name": "markugen",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/falkorclark/markugen.git"
   },
   "homepage": "https://falkorclark.com/markugen/index.html",
+  "bin": {
+    "markugen": "./lib/bin/cli.js"
+  },
   "module": "./lib/markugen.js",
   "main": "./lib/markugen.js",
   "types": "./lib/markugen.d.ts",
@@ -19,14 +22,14 @@
     "lib",
     "templates",
     "docs",
-    "docs-md"
+    "markdown"
   ],
   "type": "commonjs",
   "author": "Falkor Clark <falkorclark@gmail.com>",
   "contributors": [],
   "license": "MIT",
   "engines": {
-    "node": ">=20.11.1"
+    "node": ">=20"
   },
   "keywords": [
     "markdown",
@@ -43,22 +46,24 @@
     "md-to-html"
   ],
   "scripts": {
-    "start": "node --import tsx src/bin/main.ts",
+    "start": "node --import tsx src/bin/cli.ts",
     "build": "node --import tsx src/bin/build.ts",
     "test": "node --import tsx src/bin/test.ts",
-    "prepublishOnly": "npm run build",
-    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "lint": "eslint src",
     "tsc": "tsc -p tsconfig.json"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@stylistic/eslint-plugin": "^2.6.2",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.14.10",
     "@types/shelljs": "^0.8.15",
     "@types/yargs": "^17.0.32",
-    "@typescript-eslint/eslint-plugin": "^7.3.1",
-    "@typescript-eslint/parser": "^7.3.1",
     "eslint": "^8.57.0",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1"
   },
   "dependencies": {
     "colors": "^1.4.0",

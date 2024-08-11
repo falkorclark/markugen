@@ -4,8 +4,8 @@ from start to finish. You will setup a website with three pages including
 a nested page.
 
 The complete set of files you will generate during this example can be found 
-in the [examples](https://github.com/falkorclark/markugen/tree/main/docs-md/examples) 
-folder on GitHub or in your `node_modules/markugen/docs-md/examples` directory 
+in the [examples](https://github.com/falkorclark/markugen/tree/main/markdown/examples) 
+folder on GitHub or in your `node_modules/markugen/markdown/examples` directory 
 of your project that has Markugen installed.
 
 Additionally, all the files are provided with this documentation in the

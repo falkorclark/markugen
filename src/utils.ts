@@ -16,10 +16,16 @@ export function timeParts(ms:number)
   };
 }
 
+export interface NumFormat 
+{
+  precision?:number, 
+  fixed?:number
+}
+
 /**
  * Formats the given milliseconds into human readable format
  */
-export function timeFormat(ms:number, format?:{precision?:number, fixed?:number})
+export function timeFormat(ms:number, format?:NumFormat)
 {
   const parts = timeParts(ms);
   let text = '';
@@ -37,7 +43,7 @@ export function timeFormat(ms:number, format?:{precision?:number, fixed?:number}
  * @param format the formatting to use
  * @returns the formatted number as a string
  */
-export function formatNumber(num:number, format?:{precision?:number, fixed?:number})
+export function formatNumber(num:number, format?:NumFormat)
 {
   let out = '';
   if (!Number.isInteger(num) && format)

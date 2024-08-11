@@ -1,11 +1,10 @@
 import { MarkedExtension } from 'marked';
 import { encode } from 'html-entities';
 
-export interface Properties {
-  [prop:string]:string,
-}
+export type Properties = Record<string, string>;
 
-export interface Options {
+export interface Options 
+{
   title?:string,
   style?:string,
   script?:string,
@@ -26,7 +25,7 @@ export default function markedDocument(options?:Options):MarkedExtension
     hooks: {
       postprocess: (html) => document(html, options),
     }
-  }
+  };
 }
 
 function document(html:string, options?:Options):string

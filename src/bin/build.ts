@@ -14,7 +14,7 @@ function main()
 function docs()
 {
   const mark = new Markugen({
-    input: 'docs-md',
+    input: 'markdown',
     output: 'docs',
     assets: 'examples',
     exclude: 'examples',
