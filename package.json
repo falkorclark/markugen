@@ -47,9 +47,9 @@
   ],
   "scripts": {
     "start": "node --import tsx src/bin/cli.ts",
-    "build": "npm run lint && npm run test && node --import tsx src/bin/build.ts",
+    "build": "node --import tsx src/bin/build.ts",
     "test": "node --import tsx src/bin/test.ts",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
     "lint": "eslint src",
     "tsc": "tsc -p tsconfig.json"
   },

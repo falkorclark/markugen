@@ -8,13 +8,14 @@ your documentation as a build/publish step; therefore, you may want to add
 To install Markugen within your NodeJS project, execute one of the following
 commands:
 
-```bash
-npm install markugen
-# or
-yarn add markugen
-# or
-pnpm add markugen
-```
+:::tabs
+::tab[npm]
+`npm install markugen`
+::tab[yarn]
+`yarn add markugen`
+::tab[pnpm]
+`pnpm add markugen`
+:::
 
 ## Build Your Website
 This section assumes you already have a markdown file or a set of markdown 
