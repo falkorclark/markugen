@@ -30,7 +30,7 @@ function tsc()
 {
   shell.rm('-rf', './lib');
   const result = spawnSync(
-    'npm', ['run', 'tsc'],
+    'npx', ['tsc', '-p', 'tsconfig.json'],
     {shell:true, encoding:'utf8'}
   );
   if (result.stdout) console.log(result.stdout);
