@@ -11,7 +11,6 @@ export default function markedCopySaveCode():MarkedExtension
 {
   return {
     async: false,
-    useNewRenderer: true,
     renderer: {
       code: (token) => code(token)
     }

@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Markdown to HTML static site generation tool",
   "repository": {
     "type": "git",
@@ -59,7 +59,7 @@
     "@types/node": "^20.14.10",
     "@types/shelljs": "^0.8.15",
     "@types/yargs": "^17.0.32",
-    "eslint": "^8.57.0",
+    "eslint": "^9.12.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1"
@@ -68,7 +68,7 @@
     "colors": "^1.4.0",
     "highlight.js": "^11.10.0",
     "html-entities": "^2.5.2",
-    "marked": "^13.0.3",
+    "marked": "^14.1.2",
     "marked-alert": "^2.0.1",
     "marked-directive": "^1.0.5",
     "marked-gfm-heading-id": "^4.0.0",

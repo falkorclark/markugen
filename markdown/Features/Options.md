@@ -20,8 +20,15 @@ fonts.
 > If you would like to override styles other than the theme, please refer to
 > the section on [styles](./Styles.md).
 
-The following output shows the available theme colors and fonts that can be
+The following output shows the available theme settings that can be
 supplied as options to Markugen:
+
+```ts
+markugen.import ../../src/theme.ts
+```
+
+By default, Markugen provides a set of styles for each theme. The following
+output shows the default values used by Markugen when not overridden:
 
 ```ts
 markugen.import ../../src/themes.ts

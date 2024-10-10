@@ -10,7 +10,6 @@ export default function markedLinks():MarkedExtension
 {
   return {
     async: false,
-    useNewRenderer: true,
     renderer: {
       link: (token) => link(token)
     }

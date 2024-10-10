@@ -22,12 +22,16 @@ export default tseslint.config(
       '@stylistic/template-curly-spacing': ['error', 'never'],
       '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
       '@stylistic/no-tabs': ['error'],
+      '@stylistic/indent': ['error', 2],
       '@stylistic/max-len': ['error', { 
-        code: 80, 
+        code: 100, 
+        tabWidth: 2,
         ignoreUrls: true, 
         ignoreStrings: true,
         ignoreTemplateLiterals: true,
-        ignoreRegExpLiterals: true
+        ignoreRegExpLiterals: true,
+        ignoreComments: true,
+        ignorePattern: '.+?.+:.+'
       }],
     },
   },
