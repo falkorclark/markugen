@@ -191,6 +191,9 @@ th {
   font-size: 1.5em;
   padding-left: 15px;
   padding-right: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #markugen-navbar-title > a, #markugen-navbar-title > a:visited {
   color: var(--markugen-color);
