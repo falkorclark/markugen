@@ -142,7 +142,7 @@ export default class Markugen
   private filterRelative(files:string[])
   {
     const filtered = files.filter((file) => 
-{
+    {
       if (file === '') return false;
       if (!this.isRelative(file))
       {
@@ -293,8 +293,7 @@ export default class Markugen
     const ol = typeof label === 'string' ? {label: label} : label;
     if (!this.options.quiet && ol.ignoreQuiet !== true) 
     {
-      const color = ol.color ? ol.color : 
-        (ol.error ? colors.red : colors.green);
+      const color = ol.color ? ol.color : (ol.error ? colors.red : colors.green);
       if (ol.error)
       { 
         if (ol.label) console.error(color(ol.label), ...args);

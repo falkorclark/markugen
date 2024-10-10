@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import shell from 'shelljs';
 import colors from 'colors';
-import Markugen from './markugen';
+import Markugen, { Theme } from './markugen';
 
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
@@ -174,24 +174,27 @@ export default class Generator
   {
     // write out the sitemap
     this.script = fs.readFileSync(path.resolve(this.templates, 'markugen.template.js'), {encoding: 'utf8'});
-    this.script = this.script.replace(/{{ *((sitemap)|(markugen)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => 
-{
-      if (p2) return JSON.stringify(this.sitemap, null, 2);
-      if (p3)
+    this.script = this.script.replace(/{{ *((sitemap)|(markugen)) *}}/gi, 
+      (match:string, p1?:string, p2?:string, p3?:string) => 
       {
-        return JSON.stringify({
-          version: Markugen.version,
-          name: Markugen.name,
-          date: new Date(),
-          platform: os.platform() === 'win32' ? 'windows' : 'linux',
-        }, null, 2);
+        if (p2) return JSON.stringify(this.sitemap, null, 2);
+        if (p3)
+        {
+          return JSON.stringify({
+            version: Markugen.version,
+            name: Markugen.name,
+            date: new Date(),
+            platform: os.platform() === 'win32' ? 'windows' : 'linux',
+          }, null, 2);
+        }
+        return match;
       }
-      return match;
-    });
+    );
     if (!this.mark.options.embed)
     {
       const file = 'markugen.js';
-      fs.writeFileSync(path.resolve(this.mark.output, 'markugen.js'), 
+      fs.writeFileSync(
+        path.resolve(this.mark.output, 'markugen.js'), 
         this.script + (this.mark.options.script ? this.mark.options.script : '')
       );
       this.js.push(file);
@@ -210,25 +213,22 @@ export default class Generator
   {
     // write out the styles
     this.style = fs.readFileSync(path.resolve(this.templates, 'markugen.template.css'), {encoding: 'utf8'});
-    this.style = this.style.replace(/{{ *((light)|(dark)) *}}/gi, (match:string, p1?:string, p2?:string, p3?:string) => 
-{
-      let theme = undefined;
-      if (p2) theme = this.mark.options.theme.light;
-      if (p3) theme = this.mark.options.theme.dark;
-      if (theme)
+    this.style = this.style.replace(/{{ *((light)|(dark)) *}}/gi, 
+      (match:string, p1?:string, p2?:string, p3?:string) => 
       {
-        return `--markugen-color: ${theme.color};
-  --markugen-color-secondary: ${theme.colorSecondary};
-  --markugen-bg-color: ${theme.bgColor};
-  --markugen-bg-color-secondary: ${theme.bgColorSecondary};
-  --markugen-accent-color: ${theme.accentColor};
-  --markugen-border-color: ${theme.borderColor};
-  --markugen-border-color-secondary: ${theme.borderColorSecondary};
-  --markugen-font-family: ${theme.fontFamily};
-  --markugen-font-family-headers: ${theme.fontFamilyHeaders};`;
+        let theme:Theme|undefined = undefined;
+        if (p2) theme = this.mark.options.theme.light;
+        if (p3) theme = this.mark.options.theme.dark;
+        if (theme)
+        {
+          let css = '';
+          for (const [key, value] of Object.entries(theme)) 
+            css += `  --markugen-${key}: ${value};\n`;
+          return css;
+        }
+        return match;
       }
-      return match;
-    });
+    );
     if (!this.mark.options.embed)
     {
       const file = 'markugen.css';
@@ -394,14 +394,12 @@ export default class Generator
     if (!(entry in parent.children))
     {
       const page:Page = config ? {
-        title: this.mark.options.inheritTitle ? 
-          this.sitemap.title : this.title(name),
+        title: this.mark.options.inheritTitle ? this.sitemap.title : this.title(name),
         toc: parent.toc,
         ...config 
       } : {
         name: name,
-        title: this.mark.options.inheritTitle ? 
-          this.sitemap.title : this.title(name),
+        title: this.mark.options.inheritTitle ? this.sitemap.title : this.title(name),
         toc: parent.toc,
       };
       parent.children[entry] = page;
@@ -422,12 +420,14 @@ export default class Generator
       {
         if (/\.md$/i.test(child))
         {
-          page.children[child].href = child.replace(/(\\)|(\.md$)/gi, (match:string, p1:string, p2:string) => 
-{
-            if (p1) return '/';
-            if (p2) return '.html';
-            return match;
-          });
+          page.children[child].href = child.replace(/(\\)|(\.md$)/gi, 
+            (match:string, p1:string, p2:string) => 
+            {
+              if (p1) return '/';
+              if (p2) return '.html';
+              return match;
+            }
+          );
         }
         this.setHrefs(page.children[child]);
       }
@@ -467,20 +467,22 @@ export default class Generator
     if (!this.mark.options.embed) return undefined;
     let styles = this.style ? this.style : '';
     // add string styles
-    if (this.mark.options.style) 
-      styles += '\n' + this.mark.options.style + '\n';
+    if (this.mark.options.style) styles += '\n' + this.mark.options.style + '\n';
     // embed styles from files
     if (this.mark.options.css)
     {
-      const files = Array.isArray(this.mark.options.css) ? 
-        this.mark.options.css : [this.mark.options.css];
+      const files = Array.isArray(this.mark.options.css) ? this.mark.options.css : [this.mark.options.css];
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
         try 
-        { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
+        { 
+          styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; 
+        }
         catch(e) 
-        { this.mark.warning(`Given css file cannot be read [${file}]`); }
+        { 
+          this.mark.warning(`Given css file cannot be read [${file}]`); 
+        }
       }
     }
     return styles === '' ? undefined : styles;
@@ -497,8 +499,7 @@ export default class Generator
     // embed js from files
     if (this.mark.options.js)
     {
-      const files = Array.isArray(this.mark.options.js) ? 
-        this.mark.options.js : [this.mark.options.js];
+      const files = Array.isArray(this.mark.options.js) ? this.mark.options.js : [this.mark.options.js];
       for (const file of files)
       {
         if (URL.canParse(file)) continue;
@@ -530,14 +531,11 @@ export default class Generator
       depth = '../' + depth;
     }
 
-    const file = this.mark.isInputString ? this.mark.output : 
-      path.resolve(this.mark.output, page.href);
+    const file = this.mark.isInputString ? this.mark.output : path.resolve(this.mark.output, page.href);
     this.mark.group(colors.green('Generating:'), file);
     // full path to markdown file
-    const md = this.mark.isInputString ? file : 
-      path.resolve(this.mark.inputDir, page.href.replace(/\.html$/, '.md'));
-    const text = this.mark.isInputString ? this.mark.input : 
-      fs.readFileSync(md, {encoding: 'utf8'});
+    const md = this.mark.isInputString ? file : path.resolve(this.mark.inputDir, page.href.replace(/\.html$/, '.md'));
+    const text = this.mark.isInputString ? this.mark.input : fs.readFileSync(md, {encoding: 'utf8'});
 
     // create marked and extensions
     const marked = new Marked(
@@ -550,7 +548,7 @@ export default class Generator
       markedHighlight({
         langPrefix: 'hljs language-',
         highlight(code, lang) 
-{
+        {
           const language = hljs.getLanguage(lang) ? lang : 'plaintext';
           return hljs.highlight(code, { language }).value;
         }
@@ -565,10 +563,8 @@ export default class Generator
         title: page.title,
         style: this.styles,
         script: this.scripts,
-        css: this.css.map((value) => 
-          URL.canParse(value) ? value : depth + value),
-        js: this.js.map((value) => 
-          URL.canParse(value) ? value : depth + value),
+        css: this.css.map((value) => URL.canParse(value) ? value : depth + value),
+        js: this.js.map((value) => URL.canParse(value) ? value : depth + value),
         link: this.mark.options.favicon ? {
           href: depth + this.mark.options.favicon, 
           rel: 'icon', 
@@ -592,7 +588,7 @@ export default class Generator
   private title(file:string)
   {
     return file.replace(/(^\.+)|(\.md$)|(_|-|\.)/ig, (match, p1, p2) => 
-{
+    {
       if (p1 || p2) return '';
       return ' ';
     });

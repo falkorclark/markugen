@@ -1,25 +1,18 @@
-/**
- * Theme options
- */
-export interface Theme 
-{
-  color?:string,
-  colorSecondary?:string,
-  bgColor?:string,
-  bgColorSecondary?:string,
-  borderColor?:string,
-  borderColorSecondary?:string,
-  accentColor?:string,
-  fontFamily?:string,
-  fontFamilyHeaders?:string,
-}
+import Theme from './theme';
+export { default as Theme } from './theme';
 
 /**
  * Light and dark themes
  */
 export interface Themes 
 {
+  /**
+   * Theme used for light mode
+   */
   light?:Theme,
+  /**
+   * Theme used for dark mode
+   */
   dark?:Theme,
 }
 
@@ -37,6 +30,7 @@ export const defaultThemes:Themes = {
     accentColor: '#1f6feb',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
     fontFamilyHeaders: 'Georgia Pro, Crimson, Georgia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
+    codeMaxHeight: '500px',
   },
   dark: {
     color: 'white',
@@ -48,5 +42,6 @@ export const defaultThemes:Themes = {
     accentColor: '#a371f7',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
     fontFamilyHeaders: 'Georgia Pro, Crimson, Georgia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", STHeiti, "Microsoft YaHei", SimSun, sans-serif',
+    codeMaxHeight: '500px',
   }
 };
