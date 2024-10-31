@@ -2,11 +2,14 @@
 import colors from 'colors';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import Generator from './generator';
 import { version, name } from '../package.json';
 import { Options, Themes } from './options';
 import { timeFormat } from './utils';
 import { defaultThemes } from './themes';
+import Preprocessor from './preprocessor';
+import IMarkugen from './imarkugen';
 
 export * from './options';
 
@@ -45,6 +48,10 @@ export default class Markugen
    */
   public readonly root:string;
   /**
+   * The preprocessor to use for template expansion
+   */
+  public readonly preprocessor:Preprocessor;
+  /**
    * The generate start time for recording elapsed time
    */
   private startTime:[number,number]|undefined;
@@ -55,7 +62,6 @@ export default class Markugen
   public constructor(options:Options)
   {
     this.root = path.dirname(__dirname);
-    
     this.options = {
       format: 'file',
       output: './output',
@@ -73,12 +79,14 @@ export default class Markugen
       style: '',
       css: [],
       theme: defaultThemes,
+      vars: {},
       includeHidden: false,
       clearOutput: false,
       quiet: false,
       debug: false,
       ...options,
     };
+    this.preprocessor = new Preprocessor(this, this.options.vars);
 
     // string format implies embed
     if (this.options.format === 'string')
@@ -117,6 +125,18 @@ export default class Markugen
   public static escape(md:any):string
   {
     return md ? md.toString().replace(/([\\`*_{}[\]()#+\-.!:])/g, '\\$1') : '';
+  }
+  /**
+   * Returns an object representing the Markugen properties
+   */
+  public static toObject(date?:Date):IMarkugen
+  {
+    return {
+      version: Markugen.version,
+      name: Markugen.name,
+      date: date ?? new Date(),
+      platform: os.platform() === 'win32' ? 'windows' : 'linux',
+    };
   }
 
   /**

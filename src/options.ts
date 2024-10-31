@@ -99,6 +99,10 @@ export interface Options
    */
   theme?:Themes,
   /**
+   * Predefined variables that can be used in template expansion
+   */
+  vars?:Record<string,any>,
+  /**
    * If true, files and folders that begin with a dot (.) will be included.
    * By default, files and folders that begin with a dot (.) are ignored.
    */

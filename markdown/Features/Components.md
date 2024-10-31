@@ -1,5 +1,5 @@
 # Components
-The following sections show examples of compopnents that can be used within
+The following sections show examples of components that can be used within
 the markdown files passed to Markugen.
 
 ## Admonitions/Callouts

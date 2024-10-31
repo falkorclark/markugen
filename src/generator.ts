@@ -178,15 +178,7 @@ export default class Generator
       (match:string, p1?:string, p2?:string, p3?:string) => 
       {
         if (p2) return JSON.stringify(this.sitemap, null, 2);
-        if (p3)
-        {
-          return JSON.stringify({
-            version: Markugen.version,
-            name: Markugen.name,
-            date: new Date(),
-            platform: os.platform() === 'win32' ? 'windows' : 'linux',
-          }, null, 2);
-        }
+        if (p3) return JSON.stringify(Markugen.toObject(), null, 2);
         return match;
       }
     );
@@ -574,7 +566,7 @@ export default class Generator
       }),
     );
 
-    const html:string = marked.parse(text) as string;
+    const html:string = marked.parse(this.mark.preprocessor.process(text)) as string;
     if (!this.mark.isInputString) fs.writeFileSync(file, html);
     this.mark.groupEnd();
 
