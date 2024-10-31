@@ -18,9 +18,6 @@ function docs()
     output: 'docs',
     assets: 'examples',
     exclude: 'examples',
-    vars: {
-      'hello': 'Hello Eric!'
-    },
     clearOutput: true,
   });
   mark.generate();
