@@ -9,6 +9,7 @@ import { Options, Themes } from './options';
 import { timeFormat } from './utils';
 import { defaultThemes } from './themes';
 import Preprocessor from './preprocessor';
+import IMarkugen from './imarkugen';
 
 export * from './options';
 
@@ -128,7 +129,7 @@ export default class Markugen
   /**
    * Returns an object representing the Markugen properties
    */
-  public static toObject(date?:Date)
+  public static toObject(date?:Date):IMarkugen
   {
     return {
       version: Markugen.version,
