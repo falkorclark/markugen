@@ -24,7 +24,12 @@ html.light {
   --color-success-emphasis: #1f883d;
   --color-success-bg: #1f883d22;
   /* Markugen theme */
-{{ light }}
+{{ 
+  let css = '';
+  for (const [key, value] of Object.entries(vars.theme.light)) 
+    css += `  --markugen-${key}: ${value};\n`;
+  return css;
+}}
 }
 html.dark {
   /* Syntax highlight styles */
@@ -52,7 +57,12 @@ html.dark {
   --color-success-emphasis: #238636;
   --color-success-bg: #23863622;
   /* Markugen theme */
-{{ dark }}
+{{ 
+  let css = '';
+  for (const [key, value] of Object.entries(vars.theme.dark)) 
+    css += `  --markugen-${key}: ${value};\n`;
+  return css;
+}}
 }
 
 html {

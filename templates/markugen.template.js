@@ -674,8 +674,8 @@ class Markugen
     }
   }
     
-  markugen = {{ markugen }};
-  sitemap = {{ sitemap }};
+  markugen = {{ return JSON.stringify(vars.markugen); }};
+  sitemap = {{ return JSON.stringify(vars.sitemap); }};
 }
 
 const markugen = new Markugen();

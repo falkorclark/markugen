@@ -173,15 +173,10 @@ export default class Generator
   private writeScripts()
   {
     // write out the sitemap
-    this.script = fs.readFileSync(path.resolve(this.templates, 'markugen.template.js'), {encoding: 'utf8'});
-    this.script = this.script.replace(/{{ *((sitemap)|(markugen)) *}}/gi, 
-      (match:string, p1?:string, p2?:string, p3?:string) => 
-      {
-        if (p2) return JSON.stringify(this.sitemap, null, 2);
-        if (p3) return JSON.stringify(Markugen.toObject(), null, 2);
-        return match;
-      }
-    );
+    const temp = path.resolve(this.templates, 'markugen.template.js');
+    this.script = fs.readFileSync(temp, {encoding: 'utf8'});
+    this.mark.preprocessor.vars.sitemap = this.sitemap;
+    this.script = this.mark.preprocessor.process(this.script, temp);
     if (!this.mark.options.embed)
     {
       const file = 'markugen.js';
@@ -204,23 +199,13 @@ export default class Generator
   private writeStyles()
   {
     // write out the styles
-    this.style = fs.readFileSync(path.resolve(this.templates, 'markugen.template.css'), {encoding: 'utf8'});
-    this.style = this.style.replace(/{{ *((light)|(dark)) *}}/gi, 
-      (match:string, p1?:string, p2?:string, p3?:string) => 
-      {
-        let theme:Theme|undefined = undefined;
-        if (p2) theme = this.mark.options.theme.light;
-        if (p3) theme = this.mark.options.theme.dark;
-        if (theme)
-        {
-          let css = '';
-          for (const [key, value] of Object.entries(theme)) 
-            css += `  --markugen-${key}: ${value};\n`;
-          return css;
-        }
-        return match;
-      }
-    );
+    const temp = path.resolve(this.templates, 'markugen.template.css');
+    this.style = fs.readFileSync(temp, {encoding: 'utf8'});
+    this.mark.preprocessor.vars.theme = {
+      light: this.mark.options.theme.light,
+      dark: this.mark.options.theme.dark
+    };
+    this.style = this.mark.preprocessor.process(this.style, temp);
     if (!this.mark.options.embed)
     {
       const file = 'markugen.css';
@@ -566,7 +551,7 @@ export default class Generator
       }),
     );
 
-    const html:string = marked.parse(this.mark.preprocessor.process(text)) as string;
+    const html:string = marked.parse(this.mark.preprocessor.process(text, md)) as string;
     if (!this.mark.isInputString) fs.writeFileSync(file, html);
     this.mark.groupEnd();
 
