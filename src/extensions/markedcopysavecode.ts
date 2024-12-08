@@ -28,7 +28,7 @@ function code(token:Tokens.Code):string|false
     file = path.basename(match.groups.args);
  
   // create an id
-  const id = randomUUID();
+  const id = `copy-save-${Markugen.globalId++}`;
   return `<div class="markugen-code">
   <div class="markugen-code-toolbar">
     <div class="markugen-code-title">${file ? file : '.' + token.lang}</div>

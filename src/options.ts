@@ -47,6 +47,10 @@ export interface Options
    */
   footer?:string,
   /**
+   * If true, a timestamp will be embedded in the markugen page
+   */
+  timestamp?:boolean,
+  /**
    * Path to the home page of the site relative to the output directory.
    * The default will use the first ordered page at the root level.
    */
@@ -111,6 +115,10 @@ export interface Options
    * If true, the {@link output} directory will be cleared before generation
    */
   clearOutput?:boolean,
+  /**
+   * If true, console output will be colored, else it will not
+   */
+  color?:boolean,
   /**
    * If true, markugen will silence its output.
    */

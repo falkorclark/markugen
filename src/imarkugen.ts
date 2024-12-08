@@ -16,9 +16,13 @@ export default interface IMarkugen
   /**
    * The date/time stamp of Markugen creation
    */
-  date:Date,
+  timestamp?:Date,
   /**
    * The platform on which Markugen was executed
    */
   platform:'windows'|'linux',
+  /**
+   * Markugen home page
+   */
+  homepage:string,
 }

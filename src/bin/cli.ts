@@ -53,6 +53,12 @@ function main()
           describe: 'overrides the default Markugen footer',
           type: 'string',
         },
+        timestamp: {
+          alias: ['ts'],
+          describe: 'if true, a timestamp will be embedded in the js output',
+          type: 'boolean',
+          default: true
+        },
         home: {
           alias: ['index'],
           describe:
@@ -109,6 +115,12 @@ function main()
           describe: 'clears the output folder before building',
           type: 'boolean',
           default: false,
+        },
+        color: {
+          alias: ['c'],
+          describe: 'if true, console output will be colored',
+          type: 'boolean',
+          default: true
         },
         quiet: {
           alias: ['q'],
