@@ -4,7 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import Generator from './generator';
-import { version, name } from '../package.json';
+import { version, name, homepage } from '../package.json';
 import { Options, Themes } from './options';
 import { timeFormat } from './utils';
 import { defaultThemes } from './themes';
@@ -35,9 +35,17 @@ export default class Markugen
    */
   public static readonly name:string = name;
   /**
+   * The home page of Markugen
+   */
+  public static readonly homepage:string = homepage;
+  /**
    * Regular expression used for Markugen commands
    */
   public static readonly cmdRegex:RegExp = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
+  /**
+   * Used to generate ids the same each time
+   */
+  public static globalId:number = 1;
 
   /**
    * Contains the options that were given on construction
@@ -69,6 +77,7 @@ export default class Markugen
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
       footer: '',
+      timestamp: true,
       home: '',
       toc: 3,
       embed: false,
@@ -82,12 +91,16 @@ export default class Markugen
       vars: {},
       includeHidden: false,
       clearOutput: false,
+      color: true,
       quiet: false,
       debug: false,
       ...options,
     };
-    this.preprocessor = new Preprocessor(this, this.options.vars);
 
+    if (this.options.color) colors.enable();
+    else colors.disable();
+
+    this.preprocessor = new Preprocessor(this, this.options.vars);
     // string format implies embed
     if (this.options.format === 'string')
     {
@@ -134,8 +147,9 @@ export default class Markugen
     return {
       version: Markugen.version,
       name: Markugen.name,
-      date: date ?? new Date(),
+      timestamp: date,
       platform: os.platform() === 'win32' ? 'windows' : 'linux',
+      homepage: Markugen.homepage,
     };
   }
 

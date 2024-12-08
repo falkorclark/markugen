@@ -32,7 +32,7 @@ export default class Preprocessor
   {
     this.mark = mark;
     this.vars = {...vars};
-    this.vars['markugen'] = Markugen.toObject();
+    this.vars['markugen'] = Markugen.toObject(mark.options.timestamp ? new Date() : undefined);
   }
 
   /**
