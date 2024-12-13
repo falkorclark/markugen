@@ -274,6 +274,9 @@ th {
   min-width: 250px;
   max-width: 250px;
 }
+#markugen-toc-print {
+  display: none !important;
+}
 #markugen-toc-content {
   height: 100%;
   max-height: calc(100vh - 144px);
@@ -550,6 +553,9 @@ th {
   #markugen-content-right, #markugen-prev-next-container,
   #markugen-toc, #markugen-sitemap-menu {
     display: none !important;
+  }
+  #markugen-toc-print {
+    display: block !important;
   }
   #markugen-content {
     padding: 0px !important;
