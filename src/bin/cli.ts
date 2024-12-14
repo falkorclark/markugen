@@ -2,7 +2,7 @@
 
 import Markugen, { Options } from '../markugen';
 import { hideBin } from 'yargs/helpers';
-import yargs from 'yargs';
+import yargs, { implies } from 'yargs';
 import { version, name } from '../../package.json';
 
 // Handle startup
@@ -37,6 +37,12 @@ async function main()
         pdf: {
           alias: ['p'],
           describe: 'generates PDF files as additional output',
+          type: 'boolean',
+          default: false,
+        },
+        'pdf-only': {
+          alias: ['po'],
+          describe: 'implies --pdf and only generates the PDF files',
           type: 'boolean',
           default: false,
         },

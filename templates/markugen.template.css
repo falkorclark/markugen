@@ -587,5 +587,8 @@ th {
   .markugen-code {
     box-shadow: none !important;
   }
+  .markugen-code-content {
+    max-height: max-content !important;
+  }
 }
 

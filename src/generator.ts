@@ -41,6 +41,13 @@ export interface Sitemap extends Page
 export default class Generator
 {
   /**
+   * The name of the markugen generated files
+   */
+  public static readonly files = {
+    js: 'markugen.js',
+    css: 'markugen.css',
+  };
+  /**
    * Instance of Markugen
    */
   public readonly mark:Markugen;
@@ -103,6 +110,21 @@ export default class Generator
    */
   public async generate():Promise<string|undefined>
   {
+    // prepares for generation
+    await this.prepare();
+    // generate the output
+    const result = this.mark.isInputString ? await this.generateString() : await this.generateFiles();
+    // remove additional files if only pdf generation
+    await this.cleanup();
+    // return the result
+    return result;
+  }
+
+  /**
+   * Prepares the generator
+   */
+  private async prepare()
+  {
     this.sitemap.title = this.mark.options.title;
     this.sitemap.toc = this.mark.options.toc;
     this.sitemap.home = this.mark.options.home;
@@ -118,14 +140,38 @@ export default class Generator
         page: await browser.newPage(),
       };
     }
+  }
 
-    const result = this.mark.isInputString ? await this.generateString() : await this.generateFiles();
+  /**
+   * Cleans up generated output when pdfOnly is set
+   */
+  private async cleanup()
+  {
+    // close browser
     if (this.puppeteer)
     {
-      this.puppeteer.browser.close();
+      await this.puppeteer.browser.close();
       this.puppeteer = undefined;
     }
-    return result;
+    // delete generated files
+    if (this.mark.options.pdfOnly)
+    {
+      for (const file of this.js)
+      {
+        const full = path.resolve(this.mark.output, file);
+        if (fs.existsSync(full)) shell.rm('-rf', full);
+      }
+      for (const file of this.css)
+      {
+        const full = path.resolve(this.mark.output, file);
+        if (fs.existsSync(full)) shell.rm('-rf', full);
+      }
+      for (const file of this.assets)
+      {
+        const full = path.resolve(this.mark.output, file);
+        if (fs.existsSync(full)) shell.rm('-rf', full);
+      }
+    }
   }
 
   /**
@@ -198,9 +244,9 @@ export default class Generator
     this.script = this.mark.preprocessor.process(this.script, temp);
     if (!this.mark.options.embed)
     {
-      const file = 'markugen.js';
+      const file = Generator.files.js;
       fs.writeFileSync(
-        path.resolve(this.mark.output, 'markugen.js'), 
+        path.resolve(this.mark.output, file), 
         this.script + (this.mark.options.script ? this.mark.options.script : '')
       );
       this.js.push(file);
@@ -227,7 +273,7 @@ export default class Generator
     this.style = this.mark.preprocessor.process(this.style, temp);
     if (!this.mark.options.embed)
     {
-      const file = 'markugen.css';
+      const file = Generator.files.css;
       fs.writeFileSync(path.resolve(this.mark.output, file), 
         this.style + (this.mark.options.style ? this.mark.options.style : '')
       );
@@ -588,6 +634,8 @@ export default class Generator
             right: box?.content[3].x ?? '25px',
           }
         });
+        // remove the html file if pdf only
+        if (this.mark.options.pdfOnly) fs.rmSync(file);
       }
     }
     this.mark.groupEnd();

@@ -74,6 +74,7 @@ export default class Markugen
       format: 'file',
       output: './output',
       pdf: false,
+      pdfOnly: false,
       exclude: [],
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
@@ -97,9 +98,11 @@ export default class Markugen
       debug: false,
       ...options,
     };
-
+    // enable/disable console colors
     if (this.options.color) colors.enable();
     else colors.disable();
+    // pdf only implies pdf
+    if (this.options.pdfOnly) this.options.pdf = true;
 
     this.preprocessor = new Preprocessor(this, this.options.vars);
     // string format implies embed
