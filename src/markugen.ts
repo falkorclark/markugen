@@ -73,6 +73,7 @@ export default class Markugen
     this.options = {
       format: 'file',
       output: './output',
+      pdf: false,
       exclude: [],
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
@@ -263,10 +264,10 @@ export default class Markugen
   /**
    * Generates the documentation with the current options
    */
-  public generate():string|undefined
+  public async generate():Promise<string|undefined>
   {
     this.startTime = process.hrtime();
-    const out = new Generator(this).generate();
+    const out = await new Generator(this).generate();
     const end = process.hrtime(this.startTime);
     const ms = end[0] * 1000 + end[1] / 1000000;
     this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));

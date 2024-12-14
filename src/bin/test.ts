@@ -1,7 +1,7 @@
 
 import Markugen from '../markugen';
 
-function main()
+async function main()
 {
   const mark = new Markugen({
     input: 'devops/tests',
@@ -9,7 +9,7 @@ function main()
     clearOutput: true,
     includeHidden: true,
   });
-  mark.generate();
+  await mark.generate();
 }
 
 main();

@@ -6,23 +6,26 @@ import yargs from 'yargs';
 import { version, name } from '../../package.json';
 
 // Handle startup
-function main() 
+async function main() 
 {
   try 
   {
     const args = yargs(hideBin(process.argv))
+      .parserConfiguration({
+        'duplicate-arguments-array': false,
+      })
       .help('h')
       .alias(['h', '?'], 'help')
       .options({
         format: {
           describe: 'format of input and output',
-          options: ['file', 'string'],
+          choices: ['file', 'string'],
           default: 'file',
         },
         input: {
           alias: ['i'],
           describe:
-            'the directory to locate the markdown files or a single file',
+            'the directory to locate the markdown files, a single file, or a string of markdown',
           type: 'string',
           demandOption: true,
         },
@@ -30,6 +33,12 @@ function main()
           alias: ['o'],
           describe: 'directory to write the output',
           default: './output',
+        },
+        pdf: {
+          alias: ['p'],
+          describe: 'generates PDF files as additional output',
+          type: 'boolean',
+          default: false,
         },
         exclude: {
           alias: ['x'],
@@ -135,7 +144,7 @@ function main()
       .config('config', 'provide a JSON configuration file for options')
       .scriptName(name)
       .parse();
-    new Markugen(args as Options).generate();
+    await new Markugen(args as Options).generate();
   }
   catch (e) { console.error(e); }
 }

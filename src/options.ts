@@ -27,6 +27,11 @@ export interface Options
    */
   output?:string,
   /**
+   * If true, PDF files will be generated for each markdown file that is
+   * parsed.
+   */
+  pdf?:boolean,
+  /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of
    * paths to exclude. The paths should be relative to the {@link input}
