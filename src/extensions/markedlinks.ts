@@ -1,5 +1,7 @@
 import { MarkedExtension, Tokens } from 'marked';
 import { encode } from 'html-entities';
+import path from 'node:path';
+import { replaceLast } from '../utils';
 
 /**
  * Extension for adding target="_blank" to absolute URLs and switching
@@ -19,9 +21,12 @@ export default function markedLinks():MarkedExtension
 function link(token:Tokens.Link):string|false
 {
   // md -> html
-  if(/\.md/i.test(token.href))
+  if(/\.md/i.test(token.href) && !path.isAbsolute(token.href))
   {
-    token.href = token.href.replace(/\.md/i, '.html');
+    const href = replaceLast(token.href, /\.md/ig, '.html');
+    return `<a class="markugen-md-link" href="${href}"` +
+           `${token.title ? ` title="${token.title}"` : ''}>` +
+           `${encode(token.text)}</a>`;
   }
   // only add for outside links
   if (URL.canParse(token.href) && !token.href.startsWith('mailto:'))

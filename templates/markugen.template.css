@@ -123,6 +123,9 @@ th {
 .markugen-hidden {
   display: none;
 }
+.markugen-printable {
+  display: none;
+}
 
 /* main content styles */
 #markugen-body {
@@ -543,14 +546,6 @@ th {
   h1, h2 {
     border-bottom: 1px solid black !important;
   }
-  .markugen-tabs {
-    box-shadow: none !important;
-  }
-  #markugen-navbar, #markugen-content-left, 
-  #markugen-content-right, #markugen-prev-next-container,
-  #markugen-toc, #markugen-sitemap-menu {
-    display: none !important;
-  }
   #markugen-content {
     padding: 0px !important;
     margin: 0px !important;
@@ -575,11 +570,37 @@ th {
   th {
     background-color: lightgrey !important;
   }
+  /* .markugen-tabs-container {
+    border-radius: 10px !important;
+    border: 1px solid black !important;
+    display: grid !important;
+  } */
+  .markugen-tab-label {
+    border: 1px solid black !important;
+    border-top-right-radius: 10px !important;
+    border-top-left-radius: 10px !important;
+  } 
+  .markugen-tab {
+    border-left: 1px solid black !important;
+    border-right: 1px solid black !important;
+    border-bottom: 1px solid black !important;
+    border-bottom-right-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+  }
   .markdown-alert {
     box-shadow: none !important;
   }
   .markugen-code {
     box-shadow: none !important;
+  }
+  .markugen-code-content {
+    max-height: max-content !important;
+  }
+  .markugen-printable {
+    display: block !important;
+  }
+  .markugen-not-printable {
+    display: none !important;
   }
 }
 

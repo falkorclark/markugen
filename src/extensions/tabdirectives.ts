@@ -45,7 +45,8 @@ function tabs(this:RendererThis, token:Directive)
       else if (current) current.content += this.parser.parse([child]);
     }
 
-    let html = '<div class="markugen-tabs-container">\n<div class="markugen-tabs-labels">\n';
+    // create the main tabs first
+    let html = '<div class="markugen-tabs-container markugen-not-printable">\n<div class="markugen-tabs-labels">\n';
     // add the labels
     for (const tab of tabs)
       html += `<div name="${tab.name}" class="markugen-tab-label${tab.active ? ' active' : ''}">${encode(tab.label)}</div>\n`;
@@ -53,7 +54,18 @@ function tabs(this:RendererThis, token:Directive)
     // add the content
     for (const tab of tabs)
       html += `<div name="${tab.name}" class="markugen-tab${tab.active ? '' : ' markugen-hidden'}">\n${tab.content}</div>\n`;
-    return `${html}</div>\n</div>\n`;
+    html += '</div>\n</div>\n';
+
+    // create the printable tabs next
+    for (const tab of tabs)
+    {
+      html += `<div name="${tab.name}" class="markugen-tabs-container markugen-printable">\n` +
+        `<div name="${tab.name}" class="markugen-tab-label">${encode(tab.label)}</div>\n` +
+        `<div name="${tab.name}" class="markugen-tab">\n${tab.content}</div>\n` +
+        '</div>\n';
+    }
+
+    return html;
   }
   return false;
 }

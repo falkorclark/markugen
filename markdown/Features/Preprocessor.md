@@ -50,7 +50,7 @@ const mark = new Markugen({
   },
   ...
 });
-mark.generate();
+await mark.generate();
 ~~~
 
 The following templated code block is an example of using the `vars['marked']`

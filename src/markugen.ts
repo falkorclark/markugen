@@ -41,7 +41,7 @@ export default class Markugen
   /**
    * Regular expression used for Markugen commands
    */
-  public static readonly cmdRegex:RegExp = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
+  public static readonly cmdRegex:RegExp = /^\s*(?<esc>[\\]?)markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
   /**
    * Used to generate ids the same each time
    */
@@ -73,6 +73,8 @@ export default class Markugen
     this.options = {
       format: 'file',
       output: './output',
+      pdf: false,
+      pdfOnly: false,
       exclude: [],
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
@@ -96,9 +98,11 @@ export default class Markugen
       debug: false,
       ...options,
     };
-
+    // enable/disable console colors
     if (this.options.color) colors.enable();
     else colors.disable();
+    // pdf only implies pdf
+    if (this.options.pdfOnly) this.options.pdf = true;
 
     this.preprocessor = new Preprocessor(this, this.options.vars);
     // string format implies embed
@@ -263,10 +267,10 @@ export default class Markugen
   /**
    * Generates the documentation with the current options
    */
-  public generate():string|undefined
+  public async generate():Promise<string|undefined>
   {
     this.startTime = process.hrtime();
-    const out = new Generator(this).generate();
+    const out = await new Generator(this).generate();
     const end = process.hrtime(this.startTime);
     const ms = end[0] * 1000 + end[1] / 1000000;
     this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));

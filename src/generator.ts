@@ -1,10 +1,9 @@
 
 import path from 'node:path';
 import fs from 'node:fs';
-import os from 'node:os';
 import shell from 'shelljs';
 import colors from 'colors';
-import Markugen, { Theme } from './markugen';
+import Markugen from './markugen';
 
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
@@ -17,6 +16,8 @@ import markedLinks from './extensions/markedlinks';
 import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
+import puppeteer, { Browser, ElementHandle, Page as PuppeteerPage } from 'puppeteer';
+import { replaceLast } from './utils';
 
 export interface PageConfig 
 {
@@ -40,6 +41,13 @@ export interface Sitemap extends Page
 
 export default class Generator
 {
+  /**
+   * The name of the markugen generated files
+   */
+  public static readonly files = {
+    js: 'markugen.js',
+    css: 'markugen.css',
+  };
   /**
    * Instance of Markugen
    */
@@ -73,6 +81,10 @@ export default class Generator
    * Assets to copy over
    */
   private assets:string[] = [];
+  /**
+   * Puppeteer browser instance and page if generating PDFs
+   */
+  private puppeteer?:{ browser:Browser, page:PuppeteerPage };
 
   /**
    * Constructs a new generator with the given markugen options
@@ -97,7 +109,22 @@ export default class Generator
    * @returns the path to the home page, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public generate():string|undefined
+  public async generate():Promise<string|undefined>
+  {
+    // prepares for generation
+    await this.prepare();
+    // generate the output
+    const result = this.mark.isInputString ? await this.generateString() : await this.generateFiles();
+    // remove additional files if only pdf generation
+    await this.cleanup();
+    // return the result
+    return result;
+  }
+
+  /**
+   * Prepares the generator
+   */
+  private async prepare()
   {
     this.sitemap.title = this.mark.options.title;
     this.sitemap.toc = this.mark.options.toc;
@@ -106,14 +133,48 @@ export default class Generator
     this.style = undefined;
     this.script = undefined;
     this.assets = [];
-
-    // handle string generation
-    if (this.mark.isInputString) return this.generateString();
-    // else we are generating files
-    return this.generateFiles();
+    if (this.mark.options.pdf)
+    {
+      const browser = await puppeteer.launch();
+      this.puppeteer = {
+        browser: browser,
+        page: await browser.newPage(),
+      };
+    }
   }
 
-  private generateString():string|undefined
+  /**
+   * Cleans up generated output when pdfOnly is set
+   */
+  private async cleanup()
+  {
+    // close browser
+    if (this.puppeteer)
+    {
+      await this.puppeteer.browser.close();
+      this.puppeteer = undefined;
+    }
+    // delete generated files
+    if (this.mark.options.pdfOnly)
+    {
+      for (const file of this.js)
+      {
+        const full = path.resolve(this.mark.output, file);
+        if (fs.existsSync(full)) shell.rm('-rf', full);
+      }
+      for (const file of this.css)
+      {
+        const full = path.resolve(this.mark.output, file);
+        if (fs.existsSync(full)) shell.rm('-rf', full);
+      }
+    }
+  }
+
+  /**
+   * Generates a string of HTML
+   * @returns the HTML string
+   */
+  private async generateString():Promise<string|undefined>
   {
     const name = this.mark.options.output.replace(/\.html$/i, '');
     this.sitemap.home = this.mark.options.output;
@@ -125,13 +186,13 @@ export default class Generator
     // set the hrefs
     this.setHrefs(this.sitemap);
     // create the html
-    return this.sitemap.children ? this.writeHtml(this.sitemap.children[name + '.md']) : undefined;
+    return this.sitemap.children ? await this.writeHtml(this.sitemap.children[name + '.md']) : undefined;
   }
   /**
    * Generates the documentation to the output folder as files
    * @returns the path to the home page or undefined if an error occurred
    */
-  private generateFiles():string|undefined
+  private async generateFiles():Promise<string|undefined>
   {
     // collect all of the children and build the sitemap
     if (!this.addChildren(this.mark.inputDir, this.sitemap))
@@ -160,7 +221,7 @@ export default class Generator
 
     // write the html files
     this.mark.group(colors.green('Generating:'), 'html');
-    this.writeChildren(this.sitemap);
+    await this.writeChildren(this.sitemap);
     this.mark.groupEnd();
     const home = path.resolve(this.mark.output, this.sitemap.home);
     this.mark.log('Generating Finished:', home);
@@ -179,9 +240,9 @@ export default class Generator
     this.script = this.mark.preprocessor.process(this.script, temp);
     if (!this.mark.options.embed)
     {
-      const file = 'markugen.js';
+      const file = Generator.files.js;
       fs.writeFileSync(
-        path.resolve(this.mark.output, 'markugen.js'), 
+        path.resolve(this.mark.output, file), 
         this.script + (this.mark.options.script ? this.mark.options.script : '')
       );
       this.js.push(file);
@@ -208,7 +269,7 @@ export default class Generator
     this.style = this.mark.preprocessor.process(this.style, temp);
     if (!this.mark.options.embed)
     {
-      const file = 'markugen.css';
+      const file = Generator.files.css;
       fs.writeFileSync(path.resolve(this.mark.output, file), 
         this.style + (this.mark.options.style ? this.mark.options.style : '')
       );
@@ -421,7 +482,7 @@ export default class Generator
    * Creates the html for the children of the given page
    * @param parent the parent page
    */
-  private writeChildren(parent:Page)
+  private async writeChildren(parent:Page)
   {
     // only need to write out children here
     if (parent.children)
@@ -429,9 +490,9 @@ export default class Generator
       for(const child in parent.children)
       {
         if (parent.children[child].href)
-          this.writeHtml(parent.children[child]);
+          await this.writeHtml(parent.children[child]);
         if (parent.children[child].children) 
-          this.writeChildren(parent.children[child]);
+          await this.writeChildren(parent.children[child]);
       }
     }
   }
@@ -493,7 +554,7 @@ export default class Generator
    * @returns the file path or the html as a string, undefined 
    * if nothing was created
    */
-  private writeHtml(page:Page):string|undefined
+  private async writeHtml(page:Page):Promise<string|undefined>
   {
     // only pages with hrefs have an html page
     if (!page.href) return undefined;
@@ -552,11 +613,67 @@ export default class Generator
     );
 
     const html:string = marked.parse(this.mark.preprocessor.process(text, md)) as string;
-    if (!this.mark.isInputString) fs.writeFileSync(file, html);
+    if (!this.mark.isInputString)
+    {
+      fs.writeFileSync(file, html);
+      await this.writePdf(file, html);
+    }
     this.mark.groupEnd();
 
     // return the file path or the html
     return this.mark.isInputString ? html : file;
+  }
+
+  /**
+   * Creates the pdf version of the file
+   * @param file the path to the html file
+   */
+  private async writePdf(file:string, html:string)
+  {
+    if (!this.mark.options.pdf || !this.puppeteer) return;
+      
+    try
+    {
+      const pdf = file.replace(/\.html$/, '.pdf');
+      this.mark.log('Generating PDF:', pdf);
+      await this.puppeteer.page.goto(file, { waitUntil: 'networkidle2' });
+
+      // replace all markdown relative links with the pdf equivalent
+      await this.puppeteer.page.evaluate(() =>
+      {
+        const links = document.querySelectorAll('.markugen-md-link');
+        for(const link of links)
+        {
+          // @ts-expect-error puppeteer types no work here
+          const matches = link.href.matchAll(/\.html/ig);
+          // get the last match
+          let match = undefined; for (const m of matches) match = m;
+          if (match)
+          {
+            const lastIndex = match.index;
+            const length = match[0].length;
+            // @ts-expect-error puppeteer types no work here
+            link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
+          }
+        }
+      });
+
+      // get the content box
+      const content = await this.puppeteer.page.$('#markugen-content');
+      const box = await content?.boxModel();
+
+      await this.puppeteer.page.pdf({ 
+        path: pdf, 
+        margin: {
+          left: box?.content[0].x ?? '25px',
+          right: box?.content[3].x ?? '25px',
+        },
+        displayHeaderFooter: false,
+      });
+      // remove the html file if pdf only
+      if (this.mark.options.pdfOnly) fs.rmSync(file);
+    }
+    catch(e:any) { this.mark.error(e); }
   }
 
   /**

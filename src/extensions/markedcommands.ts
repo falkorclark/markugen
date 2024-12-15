@@ -29,7 +29,12 @@ function commands(token:Token, options:Options)
   const match = token.text.match(Markugen.cmdRegex);
   if (match && match.groups && match.groups.cmd && match.groups.args)
   {
-    if (match.groups.cmd === 'exec')
+    // allow commands to be escaped
+    if (match.groups.esc)
+    {
+      token.text = `markugen.${match.groups.cmd} ${match.groups.args}`;
+    }
+    else if (match.groups.cmd === 'exec')
     {
       options.markugen.log('Executing:', match.groups.args);
       const args = match.groups.args.split(' ');

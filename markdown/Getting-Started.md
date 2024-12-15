@@ -32,7 +32,7 @@ const mark = new Markugen({
 });
 
 // generate the website
-mark.generate();
+await mark.generate();
 ```
 
 Markugen will output the HTML files to a folder in your current working 
@@ -48,7 +48,7 @@ const mark = new Markugen({
 });
 
 // generate the website
-mark.generate();
+await mark.generate();
 ```
 
 That's all folks!
