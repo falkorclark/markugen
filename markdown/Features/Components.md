@@ -66,7 +66,7 @@ markdown will result in the table that follows:
 Tabs are reactive and are custom to Markugen. The following markdown syntax
 will result in the tabs that follow:
 
-### Markdown
+##### Markdown
 ~~~md
 :::tabs
 

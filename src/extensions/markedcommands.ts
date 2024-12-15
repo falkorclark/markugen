@@ -11,11 +11,6 @@ export interface Options
 }
 
 /**
- * Regular expression used for Markugen commands
- */
-const regex = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
-
-/**
  * Extension for allowing execution of markugen commands
  * within code blocks.
  * @returns the marked extension
@@ -31,14 +26,13 @@ function commands(token:Token, options:Options)
 {
   if (token.type !== 'code') return;
 
-
-  const match = token.text.match(regex);
+  const match = token.text.match(Markugen.cmdRegex);
   if (match && match.groups && match.groups.cmd && match.groups.args)
   {
     // allow commands to be escaped
-    if (match.index > 0 && token.text[match.index - 1] === '\\')
+    if (match.groups.esc)
     {
-      token.text = token.text.slice(match.index);
+      token.text = `markugen.${match.groups.cmd} ${match.groups.args}`;
     }
     else if (match.groups.cmd === 'exec')
     {

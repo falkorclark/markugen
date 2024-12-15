@@ -667,7 +667,8 @@ export default class Generator
         margin: {
           left: box?.content[0].x ?? '25px',
           right: box?.content[3].x ?? '25px',
-        }
+        },
+        displayHeaderFooter: false,
       });
       // remove the html file if pdf only
       if (this.mark.options.pdfOnly) fs.rmSync(file);

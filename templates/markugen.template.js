@@ -118,6 +118,7 @@ class MarkugenSitemap extends MarkugenMenu
     // create the left menu
     this.menu = document.createElement('div');
     this.menu.id = 'markugen-sitemap-menu';
+    this.menu.className = 'markugen-not-printable';
     this.mark.body.appendChild(this.menu);
     this.addChildren(this.mark.sitemap, this.menu);
   }
@@ -251,10 +252,11 @@ class MarkugenToc extends MarkugenMenu
 
     this.menu = document.createElement('div');
     this.menu.id = 'markugen-toc';
+    this.menu.className = 'markugen-not-printable';
     this.mark.body.appendChild(this.menu);
     // print version
     this.printMenu = document.createElement('div');
-    this.printMenu.id = 'markugen-toc-print';
+    this.printMenu.className = 'markugen-printable';
 
     const title = document.createElement('div');
     title.innerHTML = 'Contents';
@@ -263,7 +265,6 @@ class MarkugenToc extends MarkugenMenu
     // print version
     const ptitle = document.createElement('h1');
     ptitle.innerHTML = title.innerHTML;
-    ptitle.id = 'markugen-toc-title-print';
     this.printMenu.appendChild(ptitle);
 
     const content = document.createElement('div');
@@ -271,7 +272,6 @@ class MarkugenToc extends MarkugenMenu
     this.menu.appendChild(content);
     // print version
     const pcontent = document.createElement('div');
-    pcontent.id = 'markugen-toc-content-print';
     this.printMenu.appendChild(pcontent);
 
     // add the headers
@@ -450,10 +450,12 @@ class Markugen
     this.contentRow.id = 'markugen-content-row';
     this.contentLeft = document.createElement('div');
     this.contentLeft.id = 'markugen-content-left';
+    this.contentLeft.className = 'markugen-not-printable';
     this.content = document.createElement('div');
     this.content.id = 'markugen-content';
     this.contentRight = document.createElement('div');
     this.contentRight.id = 'markugen-content-right';
+    this.contentRight.className = 'markugen-not-printable';
 
     // put the body in the center column, don't move scripts
     const children = [];
@@ -492,6 +494,7 @@ class Markugen
   {
     this.navbar = document.createElement('div');
     this.navbar.id = 'markugen-navbar';
+    this.navbar.className = 'markugen-not-printable';
     document.body.appendChild(this.navbar);
 
     this.navbarContents = document.createElement('div');
@@ -518,6 +521,7 @@ class Markugen
     this.setPrevNext();
     this.prevNext = document.createElement('div');
     this.prevNext.id = 'markugen-prev-next-container';
+    this.prevNext.className = 'markugen-not-printable';
     this.content.appendChild(this.prevNext);
 
     if (this.previousPage && this.previousPage.href)
