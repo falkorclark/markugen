@@ -644,7 +644,7 @@ export default class Generator
         const links = document.querySelectorAll('.markugen-md-link');
         for(const link of links)
         {
-          // @ts-ignore
+          // @ts-expect-error puppeteer types no work here
           const matches = link.href.matchAll(/\.html/ig);
           // get the last match
           let match = undefined; for (const m of matches) match = m;
@@ -652,7 +652,7 @@ export default class Generator
           {
             const lastIndex = match.index;
             const length = match[0].length;
-            // @ts-ignore
+            // @ts-expect-error puppeteer types no work here
             link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
           }
         }
