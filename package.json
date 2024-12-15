@@ -32,6 +32,7 @@
     "node": ">=20"
   },
   "keywords": [
+    "md",
     "markdown",
     "html",
     "marked",
@@ -42,8 +43,10 @@
     "vue",
     "nextra",
     "markdown-to-html",
-    "md",
-    "md-to-html"
+    "md-to-html",
+    "pdf",
+    "md-to-pdf",
+    "markdown-to-pdf"
   ],
   "scripts": {
     "start": "node --import tsx src/bin/cli.ts",

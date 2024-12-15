@@ -167,11 +167,6 @@ export default class Generator
         const full = path.resolve(this.mark.output, file);
         if (fs.existsSync(full)) shell.rm('-rf', full);
       }
-      for (const file of this.assets)
-      {
-        const full = path.resolve(this.mark.output, file);
-        if (fs.existsSync(full)) shell.rm('-rf', full);
-      }
     }
   }
 
