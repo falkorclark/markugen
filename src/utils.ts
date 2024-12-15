@@ -53,3 +53,33 @@ export function formatNumber(num:number, format?:NumFormat)
   }
   return out === '' ? num.toString() : out;
 }
+
+/**
+ * Replaces the last occurrence of {@link search} in the {@link text}
+ * @param text the text to search
+ * @param search the text or regex to search for
+ * @param replace the text to replace the match with
+ * @returns the string with the last occurrence replaced
+ */
+export function replaceLast(text:string, search:string|RegExp, replace:string):string
+{
+  let lastIndex = -1;
+  let length = 0;
+  if (typeof search === 'string')
+  {
+    lastIndex = text.lastIndexOf(search);
+    length = search.length;
+  }
+  else
+  {
+    const matches = text.matchAll(search);
+    // get the last match
+    let match = undefined; for (const m of matches) match = m;
+    if (match)
+    {
+      lastIndex = match.index;
+      length = match[0].length;
+    }
+  }
+  return lastIndex < 0 ? text : `${text.slice(0, lastIndex)}${replace}${text.slice(lastIndex + length)}`;
+}

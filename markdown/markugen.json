@@ -2,5 +2,6 @@
   { "name": "index", "title": "Introduction" },
   { "name": "Getting-Started" },
   { "name": "Command-Line-Interface" },
-  { "name": "Features" }
+  { "name": "Features" },
+  { "name": "Change-Log" }
 ]

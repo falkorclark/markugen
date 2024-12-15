@@ -6,6 +6,7 @@ the markdown files passed to Markugen.
 Admonitions or Callouts follow GitHub flavored syntax. There are five (5) types
 of callouts shown in the code below that results in the callouts that follow:
 
+##### Markdown
 ~~~md
 > [!NOTE]
 > This is a note.
@@ -23,6 +24,7 @@ of callouts shown in the code below that results in the callouts that follow:
 > This is a warning alert!
 ~~~
 
+##### Result
 > [!NOTE]
 > This is a note.
 
@@ -42,6 +44,7 @@ of callouts shown in the code below that results in the callouts that follow:
 Tables use the basic markdown syntax with alignment support. The following
 markdown will result in the table that follows:
 
+##### Markdown
 ~~~md
 | Left Column     | Right Column    | Centered Column |
 |:----------------|----------------:|-----------------|
@@ -51,6 +54,7 @@ markdown will result in the table that follows:
 | Foo             | Bar             | Centered        |
 ~~~
 
+##### Result
 | Left Column     | Right Column    | Centered Column |
 |:----------------|----------------:|-----------------|
 | Foo             | Bar             | Centered        |
@@ -60,13 +64,15 @@ markdown will result in the table that follows:
 
 ## Tabs
 Tabs are reactive and are custom to Markugen. The following markdown syntax
-will rsult in the tabs that follow:
+will result in the tabs that follow:
 
+### Markdown
 ~~~md
 :::tabs
 
 ::tab[Tab 1]
 This tab has some text on different lines.
+
 Like this line and the previous.
 
 ::tab[Tab 2]
@@ -81,10 +87,12 @@ This tab has some formatting in it.
 :::
 ~~~
 
+##### Result
 :::tabs
 
 ::tab[Tab 1]
 This tab has some text on different lines.
+
 Like this line and the previous.
 
 ::tab[Tab 2]
@@ -122,6 +130,12 @@ The `markugen.import` command will import a text file into the code block. The
 following is an example of the `index.md` markdown file used to generate 
 [the home page of this documentation](../index.md).
 
+##### Markdown
+~~~sh
+\markugen.import ../index.md
+~~~
+
+##### Result
 ~~~md
 markugen.import ../index.md
 ~~~
@@ -131,6 +145,12 @@ The `markugen.exec` command will execute a shell command and populate the code
 block with the output from the execution. The following example executes the
 `echo` command with a string:
 
+##### Markdown
+~~~sh
+\markugen.exec echo Hello World!
+~~~
+
+##### Result
 ~~~
 markugen.exec echo Hello World!
 ~~~

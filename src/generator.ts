@@ -16,7 +16,8 @@ import markedLinks from './extensions/markedlinks';
 import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
-import puppeteer, { Browser, Page as PuppeteerPage } from 'puppeteer';
+import puppeteer, { Browser, ElementHandle, Page as PuppeteerPage } from 'puppeteer';
+import { replaceLast } from './utils';
 
 export interface PageConfig 
 {
@@ -620,28 +621,63 @@ export default class Generator
     if (!this.mark.isInputString)
     {
       fs.writeFileSync(file, html);
-      if (this.mark.options.pdf && this.puppeteer)
-      {
-        const pdf = file.replace(/\.html$/, '.pdf');
-        this.mark.log('Generating PDF:', pdf);
-        await this.puppeteer.page.goto(file, { waitUntil: 'networkidle2' });
-        const content = await this.puppeteer.page.$('#markugen-content');
-        const box = await content?.boxModel();
-        await this.puppeteer.page.pdf({ 
-          path: pdf, 
-          margin: {
-            left: box?.content[0].x ?? '25px',
-            right: box?.content[3].x ?? '25px',
-          }
-        });
-        // remove the html file if pdf only
-        if (this.mark.options.pdfOnly) fs.rmSync(file);
-      }
+      await this.writePdf(file, html);
     }
     this.mark.groupEnd();
 
     // return the file path or the html
     return this.mark.isInputString ? html : file;
+  }
+
+  /**
+   * Creates the pdf version of the file
+   * @param file the path to the html file
+   */
+  private async writePdf(file:string, html:string)
+  {
+    if (!this.mark.options.pdf || !this.puppeteer) return;
+      
+    try
+    {
+      const pdf = file.replace(/\.html$/, '.pdf');
+      this.mark.log('Generating PDF:', pdf);
+      await this.puppeteer.page.goto(file, { waitUntil: 'networkidle2' });
+
+      // replace all markdown relative links with the pdf equivalent
+      await this.puppeteer.page.evaluate(() =>
+      {
+        const links = document.querySelectorAll('.markugen-md-link');
+        for(const link of links)
+        {
+          // @ts-ignore
+          const matches = link.href.matchAll(/\.html/ig);
+          // get the last match
+          let match = undefined; for (const m of matches) match = m;
+          if (match)
+          {
+            const lastIndex = match.index;
+            const length = match[0].length;
+            // @ts-ignore
+            link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
+          }
+        }
+      });
+
+      // get the content box
+      const content = await this.puppeteer.page.$('#markugen-content');
+      const box = await content?.boxModel();
+
+      await this.puppeteer.page.pdf({ 
+        path: pdf, 
+        margin: {
+          left: box?.content[0].x ?? '25px',
+          right: box?.content[3].x ?? '25px',
+        }
+      });
+      // remove the html file if pdf only
+      if (this.mark.options.pdfOnly) fs.rmSync(file);
+    }
+    catch(e:any) { this.mark.error(e); }
   }
 
   /**

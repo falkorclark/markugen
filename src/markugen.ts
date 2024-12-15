@@ -39,10 +39,6 @@ export default class Markugen
    */
   public static readonly homepage:string = homepage;
   /**
-   * Regular expression used for Markugen commands
-   */
-  public static readonly cmdRegex:RegExp = /markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
-  /**
    * Used to generate ids the same each time
    */
   public static globalId:number = 1;
