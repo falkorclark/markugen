@@ -3,13 +3,28 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 1.1.0 and will be continued for each new release
 moving forward.
 
+## v1.1.1
+This is a minor version for fixing issues with PDF generation. 
+
+* This version allows for `Markugen.generate` to be asynchronous or 
+  synchronous. The method behaves synchronously if the `--pdf` option is not 
+  given. However, if the `--pdf` option is given, the method will be 
+  asynchronous and return a `Promise`. Additionally, you can call 
+  `Markugen.generateSync` and the method will always be synchronous, but 
+  the `--pdf` option will be ignored.
+* Modified the required modules to use [Puppeteer Core](https://pptr.dev/)
+  instead of `Puppeteer`. This reduces the size of Markugen, but also
+  requires an installation of [Chrome](https://www.google.com/chrome/) to
+  be installed on the machine if the `--pdf` option is given. The path to
+  Chrome is usually detected, but, if not found, the path to your Chrome
+  executable must be given with the `--chrome` option.
+
 ## v1.1.0
 This version is mostly a fix for print views and adding PDF generation. The 
 reason for the minor increment is due to generation being asynchronous now.
 
 ### Async Generation
-`Markugen.generate` and `Generator.generate` are now asynchronous and should 
-be awaited:
+`Markugen.generate` is now asynchronous and should be awaited:
 
 ##### Pre v1.1.0
 ```ts

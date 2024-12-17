@@ -36,6 +36,7 @@ of the major features are listed below:
 ## Major Features
 
 * Markdown to HTML
+* Markdown to PDF
 * Website generation
 * Static HTML generation (no need for a server)
 * Fully typed with [TypeScript](https://www.typescriptlang.org/)

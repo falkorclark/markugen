@@ -2,16 +2,16 @@ import { spawnSync } from 'node:child_process';
 import Markugen from '../markugen';
 import shell from 'shelljs';
 
-async function main()
+function main()
 {
   tsc();
-  await docs();
+  docs();
 }
 
 /**
  * Generates the documentation
  */
-async function docs()
+function docs()
 {
   const mark = new Markugen({
     input: 'markdown',
@@ -20,7 +20,7 @@ async function docs()
     exclude: 'examples',
     clearOutput: true,
   });
-  await mark.generate();
+  mark.generate();
 }
 
 /**

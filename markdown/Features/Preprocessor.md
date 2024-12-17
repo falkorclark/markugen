@@ -50,7 +50,7 @@ const mark = new Markugen({
   },
   ...
 });
-await mark.generate();
+mark.generate();
 ~~~
 
 The following templated code block is an example of using the `vars['marked']`
@@ -79,11 +79,11 @@ As an example, the following templated code block will output the values of
 the `markugen` variable when this page was generated:
 
 ~~~js
-\{{ return JSON.stringify(vars['markugen'], null, 2); }}
+\{{ return JSON.stringify(vars.markugen, null, 2); }}
 ~~~
 
 Output from the above template:
 
 ~~~json
-{{ return JSON.stringify(vars['markugen'], null, 2); }}
+{{ return JSON.stringify(vars.markugen, null, 2); }}
 ~~~

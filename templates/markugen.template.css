@@ -160,6 +160,12 @@ th {
   margin-top: 10px;
   margin-bottom: 10px;
 }
+#markugen-header {
+  font: bold 2em var(--markugen-fontFamilyHeaders);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 #markugen-footer {
   background-color: var(--markugen-bgColorSecondary);
   border-top: 1px solid var(--markugen-borderColor);
@@ -546,9 +552,14 @@ th {
   h1, h2 {
     border-bottom: 1px solid black !important;
   }
+  #markugen-content-row {
+    height: 100% !important;
+    min-height: 100% !important;
+    margin: 0px 0px !important;
+  }
   #markugen-content {
-    padding: 0px !important;
-    margin: 0px !important;
+    padding: 0px 0px !important;
+    margin: 0px 0px !important;
     max-width: 100% !important;
     color: black !important;
     background-color: white !important;
@@ -570,11 +581,6 @@ th {
   th {
     background-color: lightgrey !important;
   }
-  /* .markugen-tabs-container {
-    border-radius: 10px !important;
-    border: 1px solid black !important;
-    display: grid !important;
-  } */
   .markugen-tab-label {
     border: 1px solid black !important;
     border-top-right-radius: 10px !important;

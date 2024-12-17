@@ -17,7 +17,7 @@ markugen.import ../../templates/markugen.template.css
 
 > [!NOTE]
 > The file is a template and has a couple of special template parameters in it:
-> `\{{ light }}` and `\{{ dark }}`. These values will be replaced with the default
+> `\{{ ... }}`. These values will be replaced with the default
 > colors or those provided to Markugen upon configuration.
 
 ## Custom Styles

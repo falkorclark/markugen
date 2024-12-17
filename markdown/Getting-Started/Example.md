@@ -74,7 +74,7 @@ const mark = new Markugen({
 });
 
 // generate the website
-await mark.generate();
+mark.generate();
 ```
 
 > [!NOTE]
@@ -110,7 +110,7 @@ const mark = new Markugen({
 });
 
 // generate the website
-await mark.generate();
+mark.generate();
 ```
 
 ### Custom Page Title
