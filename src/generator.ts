@@ -16,8 +16,7 @@ import markedLinks from './extensions/markedlinks';
 import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
-import puppeteer, { Browser, ElementHandle, Page as PuppeteerPage } from 'puppeteer';
-import { replaceLast } from './utils';
+import puppeteer, { Browser, Page as PuppeteerPage } from 'puppeteer-core';
 
 export interface PageConfig 
 {
@@ -44,7 +43,7 @@ export default class Generator
   /**
    * The name of the markugen generated files
    */
-  public static readonly files = {
+  public static readonly markugenFiles = {
     js: 'markugen.js',
     css: 'markugen.css',
   };
@@ -60,6 +59,10 @@ export default class Generator
    * Generated sitemap
    */
   public readonly sitemap:Sitemap;
+  /**
+   * The html files that were generated
+   */
+  public readonly generated:string[] = [];
   
   /**
    * JavaScript to embed in each page
@@ -105,26 +108,59 @@ export default class Generator
   }
 
   /**
-   * Generates the documentation
+   * Generates the documentation. This method can be async or synchronous and
+   * the type is dependent on the {@link Markugen.options.pdf} flag. If the
+   * pdf flag is true, the method will be async, else it will be synchronous.
    * @returns the path to the home page, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public async generate():Promise<string|undefined>
+  public generate():string|undefined
   {
     // prepares for generation
-    await this.prepare();
+    this.prepare();
     // generate the output
-    const result = this.mark.isInputString ? await this.generateString() : await this.generateFiles();
-    // remove additional files if only pdf generation
+    return this.mark.isInputString ? this.generateString() : this.generateFiles();
+  }
+
+  /**
+   * Generates the documentation as PDFs. If the pdf option is given, this
+   * version of the {@link generate} method must be called or the PDFs will
+   * not be generated.
+   */
+  public async generatePdfs():Promise<string|undefined>
+  {
+    // generate the html first
+    const result = this.generate();
+    if (!result) return undefined;
+
+    this.mark.group(colors.green('Generating:'), 'pdf');
+
+    // prepare the browser
+    const browser = await puppeteer.launch({ 
+      executablePath: this.mark.options.chrome 
+    });
+    this.puppeteer = {
+      browser: browser,
+      page: await browser.newPage(),
+    };
+
+    // generate the pdfs
+    for(const file of this.generated)
+      if (/\.html$/i.test(file))
+        await this.writePdf(file);
+
+    // clean everything up
     await this.cleanup();
-    // return the result
-    return result;
+
+    this.mark.groupEnd();
+    const home = result.replace(/\.html$/i, '.pdf');
+    this.mark.log('Generating Finished:', home);
   }
 
   /**
    * Prepares the generator
    */
-  private async prepare()
+  private prepare()
   {
     this.sitemap.title = this.mark.options.title;
     this.sitemap.toc = this.mark.options.toc;
@@ -133,14 +169,7 @@ export default class Generator
     this.style = undefined;
     this.script = undefined;
     this.assets = [];
-    if (this.mark.options.pdf)
-    {
-      const browser = await puppeteer.launch();
-      this.puppeteer = {
-        browser: browser,
-        page: await browser.newPage(),
-      };
-    }
+    this.generated.length = 0;
   }
 
   /**
@@ -148,6 +177,7 @@ export default class Generator
    */
   private async cleanup()
   {
+    this.mark.log('Cleaning:', 'generated files');
     // close browser
     if (this.puppeteer)
     {
@@ -157,15 +187,15 @@ export default class Generator
     // delete generated files
     if (this.mark.options.pdfOnly)
     {
-      for (const file of this.js)
+      for (const file of this.generated)
+        if (fs.existsSync(file)) shell.rm('-rf', file);
+      if (this.mark.options.clearAssets) 
       {
-        const full = path.resolve(this.mark.output, file);
-        if (fs.existsSync(full)) shell.rm('-rf', full);
-      }
-      for (const file of this.css)
-      {
-        const full = path.resolve(this.mark.output, file);
-        if (fs.existsSync(full)) shell.rm('-rf', full);
+        for (const file of this.assets)
+        {
+          const full = path.resolve(this.mark.output, file);
+          if (fs.existsSync(full)) shell.rm('-rf', full);
+        }
       }
     }
   }
@@ -174,7 +204,7 @@ export default class Generator
    * Generates a string of HTML
    * @returns the HTML string
    */
-  private async generateString():Promise<string|undefined>
+  private generateString():string|undefined
   {
     const name = this.mark.options.output.replace(/\.html$/i, '');
     this.sitemap.home = this.mark.options.output;
@@ -186,13 +216,13 @@ export default class Generator
     // set the hrefs
     this.setHrefs(this.sitemap);
     // create the html
-    return this.sitemap.children ? await this.writeHtml(this.sitemap.children[name + '.md']) : undefined;
+    return this.sitemap.children ? this.writeHtml(this.sitemap.children[name + '.md']) : undefined;
   }
   /**
    * Generates the documentation to the output folder as files
    * @returns the path to the home page or undefined if an error occurred
    */
-  private async generateFiles():Promise<string|undefined>
+  private generateFiles():string|undefined
   {
     // collect all of the children and build the sitemap
     if (!this.addChildren(this.mark.inputDir, this.sitemap))
@@ -221,7 +251,7 @@ export default class Generator
 
     // write the html files
     this.mark.group(colors.green('Generating:'), 'html');
-    await this.writeChildren(this.sitemap);
+    this.writeChildren(this.sitemap);
     this.mark.groupEnd();
     const home = path.resolve(this.mark.output, this.sitemap.home);
     this.mark.log('Generating Finished:', home);
@@ -240,11 +270,13 @@ export default class Generator
     this.script = this.mark.preprocessor.process(this.script, temp);
     if (!this.mark.options.embed)
     {
-      const file = Generator.files.js;
+      const file = Generator.markugenFiles.js;
+      const full = path.resolve(this.mark.output, file);
       fs.writeFileSync(
-        path.resolve(this.mark.output, file), 
+        full, 
         this.script + (this.mark.options.script ? this.mark.options.script : '')
       );
+      this.generated.push(full);
       this.js.push(file);
       if (Array.isArray(this.mark.options.js))
       {
@@ -269,11 +301,14 @@ export default class Generator
     this.style = this.mark.preprocessor.process(this.style, temp);
     if (!this.mark.options.embed)
     {
-      const file = Generator.files.css;
-      fs.writeFileSync(path.resolve(this.mark.output, file), 
+      const file = Generator.markugenFiles.css;
+      const full = path.resolve(this.mark.output, file);
+      fs.writeFileSync(
+        full, 
         this.style + (this.mark.options.style ? this.mark.options.style : '')
       );
       this.css.push(file);
+      this.generated.push(full);
       if (Array.isArray(this.mark.options.css))
       {
         this.css.push(...this.mark.options.css);
@@ -482,7 +517,7 @@ export default class Generator
    * Creates the html for the children of the given page
    * @param parent the parent page
    */
-  private async writeChildren(parent:Page)
+  private writeChildren(parent:Page)
   {
     // only need to write out children here
     if (parent.children)
@@ -490,9 +525,9 @@ export default class Generator
       for(const child in parent.children)
       {
         if (parent.children[child].href)
-          await this.writeHtml(parent.children[child]);
+          this.writeHtml(parent.children[child]);
         if (parent.children[child].children) 
-          await this.writeChildren(parent.children[child]);
+          this.writeChildren(parent.children[child]);
       }
     }
   }
@@ -554,7 +589,7 @@ export default class Generator
    * @returns the file path or the html as a string, undefined 
    * if nothing was created
    */
-  private async writeHtml(page:Page):Promise<string|undefined>
+  private writeHtml(page:Page):string|undefined
   {
     // only pages with hrefs have an html page
     if (!page.href) return undefined;
@@ -616,7 +651,7 @@ export default class Generator
     if (!this.mark.isInputString)
     {
       fs.writeFileSync(file, html);
-      await this.writePdf(file, html);
+      this.generated.push(file);
     }
     this.mark.groupEnd();
 
@@ -628,7 +663,7 @@ export default class Generator
    * Creates the pdf version of the file
    * @param file the path to the html file
    */
-  private async writePdf(file:string, html:string)
+  private async writePdf(file:string)
   {
     if (!this.mark.options.pdf || !this.puppeteer) return;
       
@@ -661,17 +696,18 @@ export default class Generator
       // get the content box
       const content = await this.puppeteer.page.$('#markugen-content');
       const box = await content?.boxModel();
+      content?.dispose();
 
       await this.puppeteer.page.pdf({ 
+        format: 'A4',
         path: pdf, 
         margin: {
           left: box?.content[0].x ?? '25px',
           right: box?.content[3].x ?? '25px',
+          bottom: box?.content[0].y ?? '25px',
+          top: box?.content[0].y ?? '25px',
         },
-        displayHeaderFooter: false,
       });
-      // remove the html file if pdf only
-      if (this.mark.options.pdfOnly) fs.rmSync(file);
     }
     catch(e:any) { this.mark.error(e); }
   }

@@ -37,6 +37,11 @@ export interface Options
    */
   pdfOnly?:boolean,
   /**
+   * The path to the Chrome executable. This is only required if {@link pdf}
+   * is true and Markugen is unable to locate the executable.
+   */
+  chrome?:string,
+  /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of
    * paths to exclude. The paths should be relative to the {@link input}
@@ -89,6 +94,13 @@ export interface Options
    * not undefined.
    */
   assets?:string|string[],
+  /**
+   * This option is only used if the {@link pdfOnly} option is given. By 
+   * default, if only generating PDFs, Markugen will copy the assets
+   * to the output folder. However, you may tell Markugen to clear the assets
+   * if they are not needed by passing this flag.
+   */
+  clearAssets?:boolean,
   /**
    * Additional JavaScript to embed in the script tag at the end of the body
    */

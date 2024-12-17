@@ -6,7 +6,7 @@ import os from 'node:os';
 import Generator from './generator';
 import { version, name, homepage } from '../package.json';
 import { Options, Themes } from './options';
-import { timeFormat } from './utils';
+import { findChrome, timeFormat } from './utils';
 import { defaultThemes } from './themes';
 import Preprocessor from './preprocessor';
 import IMarkugen from './imarkugen';
@@ -75,6 +75,7 @@ export default class Markugen
       output: './output',
       pdf: false,
       pdfOnly: false,
+      chrome: '',
       exclude: [],
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
@@ -85,6 +86,7 @@ export default class Markugen
       embed: false,
       favicon: '',
       assets: [],
+      clearAssets: false,
       script: '',
       js: [],
       style: '',
@@ -111,6 +113,8 @@ export default class Markugen
       this.options.embed = true;
       this.options.inheritTitle = true;
       this.options.output = options.output ? options.output : 'index.html';
+      this.options.pdf = false;
+      this.options.pdfOnly = false;
     }
     // validate the input and options based on input
     else
@@ -127,12 +131,196 @@ export default class Markugen
       // resolve output
       this.options.output = path.resolve(this.options.output);
     }
+
+    if (this.options.pdf && (!this.options.chrome || !fs.existsSync(this.options.chrome)))
+    {
+      if (this.options.pdfOnly) 
+      {
+        this.error('Unable to locate Chrome executable, cannot generate PDFs');
+        return;
+      }
+      this.warning('Unable to locate Chrome executable, PDF generation will be skipped');
+      this.options.pdf = false;
+    }
     
     this.setTheme();
     this.checkFavicon();
     this.checkCss();
     this.checkJs();
     this.checkExcluded();
+  }
+  /**
+   * Returns true if the given file is relative to the input directory or is
+   * a valid URL.
+   * @param file the file to check
+   * @returns true if the file is relative or a URL
+   */
+  public isRelative(file:string):boolean
+  {
+    // URLs are good to go 
+    if (URL.canParse(file)) return true;
+    // path cannot be absolute
+    if (path.isAbsolute(file)) return false;
+    // must be relative to the input directory
+    return fs.existsSync(path.resolve(this.inputDir, file));
+  }
+
+  /**
+   * This is a synchronous version of {@link generate}. Calling this version
+   * will ignore the {@link Options.pdf} flag and only generate html output.
+   * See {@link generate} for more details.
+   * @returns the path to the home page, the html if format === 'string', or 
+   * undefined if an error occurred
+   */
+  public generateSync():string|undefined
+  {
+    this.startTime = process.hrtime();
+    const out = new Generator(this).generate();
+    this.outputElapsed();
+    return out;
+  }
+
+  /**
+   * Generates the documentation. This method can be async or synchronous and
+   * the type is dependent on the {@link Options.pdf} flag. If the
+   * {@link Options.pdf} flag is true, the method will be async, else it will 
+   * be synchronous.
+   * @returns the path to the home page, the html if format === 'string', or 
+   * undefined if an error occurred
+   */
+  public generate():Promise<string|undefined>|string|undefined
+  {
+    this.startTime = process.hrtime();
+    if (this.options.pdf)
+    {
+      return new Promise(
+        (resolve, reject) => 
+        {
+          new Generator(this).generatePdfs()
+            .then(
+              (result) => 
+              {
+                this.outputElapsed();
+                resolve(result);
+              }
+            )
+            .catch(
+              (err) => 
+              {
+                this.outputElapsed();
+                reject(err);
+              }
+            );
+        }
+      );
+    }
+    const out = new Generator(this).generate();
+    this.outputElapsed();
+    return out;
+  }
+
+  /**
+   * Outputs the elapsed time
+   */
+  private outputElapsed()
+  {
+    const end = process.hrtime(this.startTime);
+    const ms = end[0] * 1000 + end[1] / 1000000;
+    this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));
+  }
+
+  /**
+   * @returns true if the input given is a single file
+   */
+  public get isInputFile() { return fs.lstatSync(this.input).isFile(); }
+  /**
+   * @returns true if the input given is a string
+   */
+  public get isInputString() { return this.options.format === 'string'; }
+  /**
+   * @returns the path to the input
+   */
+  public get input() { return this.options.input; }
+  /**
+   * @returns the path to the input directory
+   */
+  public get inputDir()
+  {
+    return this.isInputFile ? path.dirname(this.input) : this.input;
+  }
+  /**
+   * @returns the path to the output directory
+   */
+  public get output() { return this.options.output; }
+  /**
+   * @returns true if hidden files and folders should be included
+   */
+  public get includeHidden() { return this.options.includeHidden; }
+  
+  /**
+   * @returns true if the output should be cleared first
+   */
+  public get clearOutput() { return this.options.clearOutput; }
+
+  /**
+   * Starts a console group
+   */
+  public group(...args:any[]) 
+  { 
+    if(!this.options.quiet) console.group(...args); 
+  }
+  /**
+   * Ends a console group
+   */
+  public groupEnd() { if(!this.options.quiet) console.groupEnd(); }
+
+  /**
+   * Use in place of console.log so the app can handle coloring
+   * and any cli options that were given
+   */
+  public log(label:OutputLabel|string, ...args:any[])
+  {
+    const ol = typeof label === 'string' ? {label: label} : label;
+    if (!this.options.quiet && ol.ignoreQuiet !== true) 
+    {
+      const color = ol.color ? ol.color : (ol.error ? colors.red : colors.green);
+      if (ol.error)
+      { 
+        if (ol.label) console.error(color(ol.label), ...args);
+        else console.error(...args);
+      }
+      else
+      { 
+        if (ol.label) console.log(color(ol.label), ...args);
+        else console.log(...args);
+      }
+      // check if we should exit
+      if (ol.error && ol.error.exit === true)
+        process.exit(ol.error.code);
+    }
+  }
+  /**
+   * Use in place of console.log so the app can handle coloring
+   * and any cli options that were given
+   */
+  public warning(...args:any[])
+  {
+    this.log({ label: 'Warning:', color: colors.yellow }, ...args);
+  }
+  /**
+   * Use in place of console.error so the app can handle coloring
+   * and any cli options that were given. Also will exit with code 1.
+   */
+  public error(...args:any[])
+  {
+    this.log(
+      { 
+        label: 'Error:', 
+        color: colors.red, 
+        error: { exit: true, code: 1 },
+      }, 
+      ...args
+    );
   }
 
   /**
@@ -247,127 +435,5 @@ export default class Markugen
       this.warning(`Given favicon is not relative to the input directory [${this.options.favicon}]`);
       this.options.favicon = '';
     }
-  }
-  /**
-   * Returns true if the given file is relative to the input directory or is
-   * a valid URL.
-   * @param file the file to check
-   * @returns true if the file is relative or a URL
-   */
-  public isRelative(file:string):boolean
-  {
-    // URLs are good to go 
-    if (URL.canParse(file)) return true;
-    // path cannot be absolute
-    if (path.isAbsolute(file)) return false;
-    // must be relative to the input directory
-    return fs.existsSync(path.resolve(this.inputDir, file));
-  }
-
-  /**
-   * Generates the documentation with the current options
-   */
-  public async generate():Promise<string|undefined>
-  {
-    this.startTime = process.hrtime();
-    const out = await new Generator(this).generate();
-    const end = process.hrtime(this.startTime);
-    const ms = end[0] * 1000 + end[1] / 1000000;
-    this.log('Elapsed Time:', timeFormat(ms, {fixed: 2}));
-    return out;
-  }
-
-  /**
-   * @returns true if the input given is a single file
-   */
-  public get isInputFile() { return fs.lstatSync(this.input).isFile(); }
-  /**
-   * @returns true if the input given is a string
-   */
-  public get isInputString() { return this.options.format === 'string'; }
-  /**
-   * @returns the path to the input
-   */
-  public get input() { return this.options.input; }
-  /**
-   * @returns the path to the input directory
-   */
-  public get inputDir()
-  {
-    return this.isInputFile ? path.dirname(this.input) : this.input;
-  }
-  /**
-   * @returns the path to the output directory
-   */
-  public get output() { return this.options.output; }
-  /**
-   * @returns true if hidden files and folders should be included
-   */
-  public get includeHidden() { return this.options.includeHidden; }
-  
-  /**
-   * @returns true if the output should be cleared first
-   */
-  public get clearOutput() { return this.options.clearOutput; }
-
-  /**
-   * Starts a console group
-   */
-  public group(...args:any[]) 
-  { 
-    if(!this.options.quiet) console.group(...args); 
-  }
-  /**
-   * Ends a console group
-   */
-  public groupEnd() { if(!this.options.quiet) console.groupEnd(); }
-
-  /**
-   * Use in place of console.log so the app can handle coloring
-   * and any cli options that were given
-   */
-  public log(label:OutputLabel|string, ...args:any[])
-  {
-    const ol = typeof label === 'string' ? {label: label} : label;
-    if (!this.options.quiet && ol.ignoreQuiet !== true) 
-    {
-      const color = ol.color ? ol.color : (ol.error ? colors.red : colors.green);
-      if (ol.error)
-      { 
-        if (ol.label) console.error(color(ol.label), ...args);
-        else console.error(...args);
-      }
-      else
-      { 
-        if (ol.label) console.log(color(ol.label), ...args);
-        else console.log(...args);
-      }
-      // check if we should exit
-      if (ol.error && ol.error.exit === true)
-        process.exit(ol.error.code);
-    }
-  }
-  /**
-   * Use in place of console.log so the app can handle coloring
-   * and any cli options that were given
-   */
-  public warning(...args:any[])
-  {
-    this.log({ label: 'Warning:', color: colors.yellow }, ...args);
-  }
-  /**
-   * Use in place of console.error so the app can handle coloring
-   * and any cli options that were given. Also will exit with code 1.
-   */
-  public error(...args:any[])
-  {
-    this.log(
-      { 
-        label: 'Error:', 
-        color: colors.red, 
-        error: { exit: true, code: 1 },
-      }, 
-      ...args
-    );
   }
 }

@@ -258,6 +258,11 @@ class MarkugenToc extends MarkugenMenu
     this.printMenu = document.createElement('div');
     this.printMenu.className = 'markugen-printable';
 
+    const header = document.createElement('div');
+    header.id = 'markugen-header';
+    header.innerHTML = this.mark.page.title;
+    this.printMenu.appendChild(header);
+
     const title = document.createElement('div');
     title.innerHTML = 'Contents';
     title.id = 'markugen-toc-title';
