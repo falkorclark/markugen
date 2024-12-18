@@ -1,7 +1,3 @@
-import path from 'node:path';
-import fs from 'node:fs';
-import os from 'node:os';
-import { spawnSync } from 'node:child_process';
 
 /**
  * Computes the parts of time from the given milliseconds
@@ -85,63 +81,4 @@ export function replaceLast(text:string, search:string|RegExp, replace:string):s
     }
   }
   return lastIndex < 0 ? text : `${text.slice(0, lastIndex)}${replace}${text.slice(lastIndex + length)}`;
-}
-
-/**
- * Attempts to locate an executable for Google Chrome
- * @returns the path to chrome if found, else returns undefined
- */
-export function findChrome():string|undefined
-{
-  switch(process.platform)
-  {
-    case 'win32': return findChromeWindows();
-    case 'darwin': return findChromeMac();
-    default: return findChromeLinux();
-  }
-}
-
-function findChromeWindows():string|undefined
-{
-  const suffix = '\\Google\\Chrome\\Application\\chrome.exe';
-  const prefixes = [
-    process.env.LOCALAPPDATA,
-    process.env.PROGRAMFILES,
-    process.env['PROGRAMFILES(X86)']
-  ];
-  for (const prefix of prefixes)
-  {
-    if (prefix)
-    {
-      const test = path.join(prefix, suffix);
-      if (fs.existsSync(test)) return test;
-    }
-  }
-  return undefined;
-}
-
-function findChromeMac():string|undefined
-{
-  const toExec = '/Contents/MacOS/Google Chrome';
-  const regPath = '/Applications/Google Chrome.app' + toExec;
-  const altPath = path.join(os.homedir(), regPath);
-  const mdFindCmd = 'mdfind \'kMDItemDisplayName == "Google Chrome" && kMDItemKind == Application\'';
-
-  if (fs.existsSync(regPath)) return regPath;
-  if (fs.existsSync(altPath)) return altPath;
-
-  // try the md command last
-  const result = spawnSync(mdFindCmd);
-  if (result.status === 0 && result.stdout) 
-    return result.stdout.toString().trim() + toExec;
-
-  return undefined;
-}
-
-function findChromeLinux():string|undefined
-{
-  const result = spawnSync('which google-chrome');
-  if (result.status === 0 && result.stdout) 
-    return result.stdout.toString().trim();
-  return undefined;
 }

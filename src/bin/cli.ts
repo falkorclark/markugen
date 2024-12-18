@@ -4,7 +4,6 @@ import Markugen, { Options } from '../markugen';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { version, name } from '../../package.json';
-import { findChrome } from '../utils';
 import colors from 'colors';
 
 // Handle startup
@@ -51,7 +50,7 @@ async function main()
         describe: 'the path to the Chrome executable. This is only required ' +
           'if --pdf is true and Markugen is unable to locate the executable.',
         type: 'string',
-        default: findChrome(),
+        default: Markugen.findChrome(),
       },
       exclude: {
         alias: ['x'],
@@ -66,8 +65,7 @@ async function main()
       },
       'inherit-title': {
         alias: ['it'],
-        describe:
-          'if true, all pages not custom configured will inherit the site title',
+        describe: 'if true, all pages not custom configured will inherit the site title',
         type: 'boolean',
       },
       footer: {
