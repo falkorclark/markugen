@@ -3,6 +3,11 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 1.1.0 and will be continued for each new release
 moving forward.
 
+## v1.1.2
+This is a very small release that exports some extra utility functions and
+adds the `Markugen.findChrome` function as a callable function for use by
+modules using Markugen.
+
 ## v1.1.1
 This is a minor version for fixing issues with PDF generation. 
 
