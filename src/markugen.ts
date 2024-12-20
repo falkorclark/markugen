@@ -80,7 +80,7 @@ export default class Markugen
       extensions: ['md'],
       outputFormat: 'file',
       output: './output',
-      outputName: 'index',
+      outputName: '',
       pdf: false,
       chrome: '',
       exclude: [],
@@ -217,13 +217,12 @@ export default class Markugen
       this.options.input = path.resolve(this.options.input);
       if (!fs.existsSync(this.options.input))
         throw new Error(`Input does not exist [${colors.red(this.options.input)}]`);
-      
-      // set the name of the output file
-      if (!this.options.outputName) 
-      {
-        const parts = path.parse(this.options.input);
-        this.options.outputName = parts.name;
-      }
+    }
+    // set the name of the output file
+    if (this.isInputSolo && !this.options.outputName)
+    {
+      const name = this.isInputString ? 'index' : path.parse(this.options.input).name;
+      this.options.outputName = name;
     }
 
     // handle pdf options

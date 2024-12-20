@@ -53,7 +53,6 @@ async function main()
         alias: ['n', 'on'],
         describe: 'base name of the file to output, only used when --input is ' +
           'a file or string, defaults to index for strings and the file name for files',
-        default: 'index',
       },
       pdf: {
         alias: ['p'],

@@ -450,7 +450,7 @@ export default class Generator
       };
       if (md.md)
       {
-        const html = this.mark.isInputSolo && this.mark.options.outputName ? this.mark.options.outputName : parts.name;
+        const html = this.mark.isInputSolo ? this.mark.options.outputName : parts.name;
         page.input = md.md;
         page.href = path.join(parentDir, html + '.html').replace(/\\/g, '/');
       }
