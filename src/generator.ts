@@ -3,7 +3,6 @@ import path from 'node:path';
 import fs from 'fs-extra';
 import colors from 'colors';
 import Markugen from './markugen';
-
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
 import { createDirectives, presetDirectiveConfigs } from 'marked-directive';
@@ -17,6 +16,7 @@ import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
 import puppeteer, { Browser, Page as PuppeteerPage } from 'puppeteer-core';
 import { Page, PageConfig, Sitemap } from './page';
+import url from 'url';
 
 export * from './page';
 
@@ -660,7 +660,11 @@ export default class Generator
       
     const pdf = file.replace(/\.html$/, '.pdf');
     this.mark.log('Generating PDF:', pdf);
-    await this.puppeteer.page.goto(file, { waitUntil: 'networkidle2' });
+    
+    await this.puppeteer.page.goto(
+      url.pathToFileURL(file).toString(), 
+      { waitUntil: 'networkidle2' }
+    );
 
     // replace all markdown relative links with the pdf equivalent
     await this.puppeteer.page.evaluate(() =>

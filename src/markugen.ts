@@ -226,6 +226,7 @@ export default class Markugen
     }
 
     // handle pdf options
+    if (this.options.pdf && !this.options.browser) this.options.browser = Markugen.findChrome() ?? '';
     if (this.options.pdf && (!this.options.browser || !fs.existsSync(this.options.browser)))
       throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
 
