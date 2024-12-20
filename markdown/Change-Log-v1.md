@@ -3,6 +3,16 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 1.1.0 and will be continued for each new release
 moving forward.
 
+## v1.2.0
+
+* no default assets
+* no pdf only
+* errors are thrown
+* fix for newlines in cli input
+* output format
+* output name
+* assets not automatic
+
 ## v1.1.2
 This is a very small release that exports some extra utility functions and
 adds the `Markugen.findChrome` function as a callable function for use by

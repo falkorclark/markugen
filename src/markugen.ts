@@ -20,10 +20,6 @@ export interface OutputLabel
   label: string,
   color?: colors.Color,
   ignoreQuiet?: boolean,
-  error?: {
-    exit: boolean,
-    code?: number,
-  },
 }
 
 export default class Markugen
@@ -62,21 +58,30 @@ export default class Markugen
    */
   public readonly preprocessor:Preprocessor;
   /**
+   * Set to true if this is being ran from the cli
+   */
+  public readonly cli:boolean;
+  /**
    * The generate start time for recording elapsed time
    */
   private startTime:[number,number]|undefined;
 
   /**
-   * Constructs a new instance with the given options
+   * Constructs a new instance with the given {@link options}.
+   * The {@link cli} parameter is used internally for when executed from
+   * the command line.
    */
-  public constructor(options:Options)
+  public constructor(options:Options, cli?:boolean)
   {
     this.root = path.dirname(__dirname);
+    this.cli = cli ?? false;
     this.options = {
       format: 'file',
+      extensions: ['md'],
+      outputFormat: 'file',
       output: './output',
+      outputName: 'index',
       pdf: false,
-      pdfOnly: false,
       chrome: '',
       exclude: [],
       title: 'Markugen v' + Markugen.version,
@@ -88,7 +93,7 @@ export default class Markugen
       embed: false,
       favicon: '',
       assets: [],
-      clearAssets: false,
+      keepAssets: false,
       script: '',
       js: [],
       style: '',
@@ -102,54 +107,10 @@ export default class Markugen
       debug: false,
       ...options,
     };
-    // enable/disable console colors
-    if (this.options.color) colors.enable();
-    else colors.disable();
-    // pdf only implies pdf
-    if (this.options.pdfOnly) this.options.pdf = true;
-
+    // create the preprocessor
     this.preprocessor = new Preprocessor(this, this.options.vars);
-    // string format implies embed
-    if (this.options.format === 'string')
-    {
-      this.options.embed = true;
-      this.options.inheritTitle = true;
-      this.options.output = options.output ? options.output : 'index.html';
-      this.options.pdf = false;
-      this.options.pdfOnly = false;
-    }
-    // validate the input and options based on input
-    else
-    {
-      this.options.input = path.resolve(options.input);
-      if (!fs.existsSync(this.options.input))
-      {
-        this.error(`Input does not exist [${this.options.input}]`);
-        return;
-      }
-      // add the assets if it exists in the input directory
-      if (options.assets === undefined && fs.existsSync(path.resolve(this.inputDir, 'assets')))
-        this.options.assets = ['assets'];
-      // resolve output
-      this.options.output = path.resolve(this.options.output);
-    }
-
-    if (this.options.pdf && (!this.options.chrome || !fs.existsSync(this.options.chrome)))
-    {
-      if (this.options.pdfOnly) 
-      {
-        this.error('Unable to locate Chrome executable, cannot generate PDFs');
-        return;
-      }
-      this.warning('Unable to locate Chrome executable, PDF generation will be skipped');
-      this.options.pdf = false;
-    }
-    
-    this.setTheme();
-    this.checkFavicon();
-    this.checkCss();
-    this.checkJs();
-    this.checkExcluded();
+    // validate the options
+    this.validate();
   }
   /**
    * Returns true if the given file is relative to the input directory or is
@@ -177,6 +138,7 @@ export default class Markugen
   public generateSync():string|undefined
   {
     this.startTime = process.hrtime();
+    this.options.pdf = false;
     const out = new Generator(this).generate();
     this.outputElapsed();
     return out;
@@ -222,6 +184,86 @@ export default class Markugen
   }
 
   /**
+   * Validates the options and makes changes where necessary
+   */
+  private validate()
+  {
+    // enable/disable console colors
+    if (this.options.color) colors.enable();
+    else colors.disable();
+
+    // must have at least one extension
+    if (this.options.extensions.length < 1) this.options.extensions.push('md');
+
+    // pdf implies output format of file
+    if (this.options.pdf && this.options.outputFormat === 'string')
+    {
+      this.warning(`Output format changing to ${colors.green('file')} for PDF generation`);
+      this.options.outputFormat = 'file';
+    }
+    // quiet mode if string output
+    if (this.options.outputFormat === 'string') this.options.quiet = true;
+
+    // unescape newlines provided in the string
+    if (this.options.format === 'string' && this.cli) 
+      this.options.input = this.options.input.replace(/\\n/g, '\n');
+
+    // validate the input and options based on input
+    if (!this.isInputString)
+    {
+      this.options.input = path.resolve(this.options.input);
+      if (!fs.existsSync(this.options.input))
+        throw new Error(`Input does not exist [${colors.red(this.options.input)}]`);
+      
+      // set the name of the output file
+      if (!this.options.outputName) 
+      {
+        const parts = path.parse(this.options.input);
+        this.options.outputName = parts.name;
+      }
+    }
+
+    // handle pdf options
+    if (this.options.pdf && (!this.options.chrome || !fs.existsSync(this.options.chrome)))
+      throw new Error('Unable to locate Chrome executable, cannot generate PDFs');
+
+    // output string only valid for input string
+    if (this.options.outputFormat === 'string' && !this.isInputFile && this.options.format !== 'string')
+      throw new Error('Output format can only be string if input is a string or a file');
+
+    // string format implies embed
+    if (this.options.format === 'string' || this.options.outputFormat === 'string')
+      this.options.embed = true;
+    
+    // solo input implies inherit title
+    if (this.isInputSolo) this.options.inheritTitle = true;
+      
+    // resolve output
+    this.options.output = path.resolve(this.options.output);
+
+    // check on protected directories
+    if(this.options.clearOutput)
+    {
+      const nono = [
+        path.resolve('/'),
+        this.inputDir,
+        process.cwd(),
+      ];
+      if (nono.includes(this.output))
+      {
+        this.warning(`Output set to protected directory [${colors.red(this.output)}], skipping clear output`);
+        this.options.clearOutput = false;
+      }
+    }
+
+    this.setTheme();
+    this.checkFavicon();
+    this.checkCss();
+    this.checkJs();
+    this.checkExcluded();
+  }
+
+  /**
    * Outputs the elapsed time
    */
   private outputElapsed()
@@ -234,11 +276,15 @@ export default class Markugen
   /**
    * @returns true if the input given is a single file
    */
-  public get isInputFile() { return fs.lstatSync(this.input).isFile(); }
+  public get isInputFile() { return fs.existsSync(this.input) && fs.lstatSync(this.input).isFile(); }
   /**
    * @returns true if the input given is a string
    */
   public get isInputString() { return this.options.format === 'string'; }
+  /**
+   * @returns true if the input is a string or file
+   */
+  public get isInputSolo() { return this.isInputString || this.isInputFile; }
   /**
    * @returns the path to the input
    */
@@ -285,20 +331,9 @@ export default class Markugen
     const ol = typeof label === 'string' ? {label: label} : label;
     if (!this.options.quiet && ol.ignoreQuiet !== true) 
     {
-      const color = ol.color ? ol.color : (ol.error ? colors.red : colors.green);
-      if (ol.error)
-      { 
-        if (ol.label) console.error(color(ol.label), ...args);
-        else console.error(...args);
-      }
-      else
-      { 
-        if (ol.label) console.log(color(ol.label), ...args);
-        else console.log(...args);
-      }
-      // check if we should exit
-      if (ol.error && ol.error.exit === true)
-        process.exit(ol.error.code);
+      const color = ol.color ? ol.color : colors.green;
+      if (ol.label) console.log(color(ol.label), ...args);
+      else console.log(...args);
     }
   }
   /**
@@ -308,21 +343,6 @@ export default class Markugen
   public warning(...args:any[])
   {
     this.log({ label: 'Warning:', color: colors.yellow }, ...args);
-  }
-  /**
-   * Use in place of console.error so the app can handle coloring
-   * and any cli options that were given. Also will exit with code 1.
-   */
-  public error(...args:any[])
-  {
-    this.log(
-      { 
-        label: 'Error:', 
-        color: colors.red, 
-        error: { exit: true, code: 1 },
-      }, 
-      ...args
-    );
   }
 
   /**
@@ -349,15 +369,17 @@ export default class Markugen
 
   /**
    * Checks to see if the path is excluded.
-   * @param path the path to check for exclusion
+   * @param file the path to check for exclusion
    * @returns true if the path is excluded, false otherwise
    */
-  public isExcluded(path:string):boolean
+  public isExcluded(file:string):boolean
   {
-    if (!this.options.exclude) return false;
     for(const exclude of this.options.exclude as string[])
-      if (path.indexOf(exclude) !== -1) 
+      if (file.indexOf(exclude) !== -1) 
         return true;
+    const parts = path.parse(file);
+    if(!this.options.includeHidden && parts.name.startsWith('.'))
+      return true;
     return false;
   }
   
@@ -445,7 +467,7 @@ export default class Markugen
       if (file === '') return false;
       if (!this.isRelative(file))
       {
-        this.warning(`Given file is not relative to input directory [${file}]`);
+        this.warning(`Given file is not relative to input directory [${colors.red(file)}]`);
         return false;
       }
       return true;
@@ -505,7 +527,7 @@ export default class Markugen
   {
     if (this.options.favicon && !this.isRelative(this.options.favicon))
     {
-      this.warning(`Given favicon is not relative to the input directory [${this.options.favicon}]`);
+      this.warning(`Given favicon is not relative to the input directory [${colors.red(this.options.favicon)}]`);
       this.options.favicon = '';
     }
   }

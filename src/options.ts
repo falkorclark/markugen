@@ -1,5 +1,6 @@
 import { Theme, Themes } from './themes';
 export { Theme, Themes } from './themes';
+import Markugen from './markugen';
 
 /**
  * Markugen configuration options
@@ -7,35 +8,47 @@ export { Theme, Themes } from './themes';
 export interface Options 
 {
   /**
-   * The format of the {@link input} and {@link output}. If string is used for
+   * The format of the {@link input}. If string is used for
    * the format, then the input is assumed to be a markdown string, else it
    * is assumed to be a file or directory. The string format option implies
-   * {@link embed} and {@link inheritTitle} and will cause the 
-   * {@link Generator.generate} function to
-   * return the HTML as a string instead of writing a file.
+   * {@link embed} and {@link inheritTitle}. [default: file]
    */
   format?:'file'|'string',
+  /**
+   * The format of the {@link output}. If the format is `file` then 
+   * {@link Markugen} will generate a file or set of
+   * files in the given {@link output} directory. If the format is `string`,
+   * then {@link Markugen} will return a string of html (the string output
+   * format is only valid if the {@link format} is also `string` or
+   * {@link input} is a file).
+   * [default: 'file']
+   */
+  outputFormat?:'file'|'string',
   /**
    * Location of the input directory to look for markdown files or a path to
    * a single markdown file.
    */
   input:string,
   /**
-   * Location to output the html files [default: './output']. If {@link format}
-   * is 'string' this should contain the name of the file that will be written
-   * by the caller. If not provided, 'index.html' will be used.
+   * Set of extensions (no dot) to look for in the provided input directory. 
+   * By default, Markugen will only look for files ending in `md`.
+   */
+  extensions?:string[],
+  /**
+   * Directory to output the html files [default: './output']
    */
   output?:string,
   /**
-   * If true, PDF files will be generated for each markdown file that is
-   * parsed.
+   * The base name of the file to output. This option is only valid if {@link input}
+   * is a string or a single file. The default is 'index' or the name of
+   * the file if given a file as {@link input}.
+   */
+  outputName?:string,
+  /**
+   * If true, PDF files will be generated instead of html files. This option
+   * implies {@link outputFormat} is `file`.
    */
   pdf?:boolean,
-  /**
-   * Implies {@link pdf} and only generates the pdf files, no html files
-   * will be generated.
-   */
-  pdfOnly?:boolean,
   /**
    * The path to the Chrome executable. This is only required if {@link pdf}
    * is true and Markugen is unable to locate the executable.
@@ -95,12 +108,12 @@ export interface Options
    */
   assets?:string|string[],
   /**
-   * This option is only used if the {@link pdfOnly} option is given. By 
-   * default, if only generating PDFs, Markugen will copy the assets
-   * to the output folder. However, you may tell Markugen to clear the assets
-   * if they are not needed by passing this flag.
+   * This option is only used if the {@link pdf} option is given. By 
+   * default, if generating PDFs, Markugen will remove the assets
+   * from the output folder. However, you may tell Markugen to keep the assets
+   * if they are needed by passing this flag.
    */
-  clearAssets?:boolean,
+  keepAssets?:boolean,
   /**
    * Additional JavaScript to embed in the script tag at the end of the body
    */

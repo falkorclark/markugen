@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Markdown to HTML/PDF static site generation tool",
   "repository": {
     "type": "git",
