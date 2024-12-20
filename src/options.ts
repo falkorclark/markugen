@@ -60,7 +60,7 @@ export interface Options
    * paths to exclude. The paths should be relative to the {@link input}
    * directory.
    */
-  exclude?:string|string[],
+  exclude?:string[],
   /**
    * The title to use for the navbar [default: 'Markugen vX.X.X']
    */
@@ -101,12 +101,9 @@ export interface Options
   favicon?:string,
   /**
    * Path(s) to assets folders or files to copy to output directory.
-   * Directories will be copied recursively. By default, markugen will look
-   * for a folder in the {@link input} directory called 'assets'. If you do
-   * not want the default behavior, you must pass an empty array or string,
-   * not undefined.
+   * Directories will be copied recursively.
    */
-  assets?:string|string[],
+  assets?:string[],
   /**
    * This option is only used if the {@link pdf} option is given. By 
    * default, if generating PDFs, Markugen will remove the assets
@@ -119,19 +116,19 @@ export interface Options
    */
   script?:string,
   /**
-   * Path or list of paths to js files to include. These files must be absolute
+   * List of paths to js files to include. These files must be absolute
    * URLs or relative to the input directory.
    */
-  js?:string|string[],
+  js?:string[],
   /**
    * Additional CSS to embed in the style tag at the beginning of the document
    */
   style?:string,
   /**
-   * Path or list of paths to css files to include. These files must be absolute
+   * List of paths to css files to include. These files must be absolute
    * URLs or relative to the input directory.
    */
-  css?:string|string[],
+  css?:string[],
   /**
    * Defines the light and dark theme to use on the website. See {@link Theme}
    * for more details.

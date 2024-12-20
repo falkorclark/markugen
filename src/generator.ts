@@ -27,11 +27,6 @@ interface MarkdownEntry {
   md?:string,
 }
 
-interface ChildPage {
-  entry:string,
-  page:Page,
-}
-
 export default class Generator
 {
   /**
@@ -167,7 +162,7 @@ export default class Generator
 
     // collect all of the children and build the sitemap
     if (!this.addChildren(this.mark.inputDir, this.sitemap))
-      throw new Error(`No markdown files found in [${this.mark.inputDir}]`);
+      throw new Error(`No markdown files found in [${colors.red(this.mark.inputDir)}]`);
 
     // set home to the first child with a page
     if (!this.sitemap.home && this.sitemap.children)
@@ -267,11 +262,8 @@ export default class Generator
       );
       this.generated.push(full);
       this.js.push(file);
-      if (Array.isArray(this.mark.options.js))
-      {
-        this.js.push(...this.mark.options.js);
-        this.assets.push(...this.mark.options.js);
-      }
+      this.js.push(...this.mark.options.js);
+      this.assets.push(...this.mark.options.js);
       this.script = undefined;
     }
   }
@@ -310,11 +302,8 @@ export default class Generator
       );
       this.css.push(file);
       this.generated.push(full);
-      if (Array.isArray(this.mark.options.css))
-      {
-        this.css.push(...this.mark.options.css);
-        this.assets.push(...this.mark.options.css);
-      }
+      this.css.push(...this.mark.options.css);
+      this.assets.push(...this.mark.options.css);
       this.style = undefined;
     }
   }
@@ -324,16 +313,10 @@ export default class Generator
    */
   private copyAssets()
   {
-    if (this.mark.options.assets)
-    {
-      if (Array.isArray(this.mark.options.assets)) 
-        this.assets.push(...this.mark.options.assets);
-      else this.assets.push(this.mark.options.assets);
-    }
+    if (this.mark.options.assets) this.assets.push(...this.mark.options.assets);
     if (this.mark.options.favicon) this.assets.push(this.mark.options.favicon);
 
-    if (this.assets.length > 0) 
-      this.mark.group(colors.green('Copying:'), 'assets');
+    if (this.assets.length > 0) this.mark.group(colors.green('Copying:'), 'assets');
     for(const asset of this.assets) 
     {
       // don't copy URLs

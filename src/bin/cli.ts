@@ -70,7 +70,8 @@ async function main()
       },
       exclude: {
         alias: ['x'],
-        describe: 'list of files or folders to exclude from generation',
+        describe: 'list of files or folders to exclude from generation, paths ' +
+          'should be relative to the input directory',
         type: 'array',
       },
       title: {
@@ -181,8 +182,8 @@ async function main()
   }
   catch(e:any) 
   { 
-    const msg = args.debug ? e.stack : `Error: ${e.message}`;
-    console.error(colors.red(msg));
+    const msg = args.debug ? colors.red(e.stack) : `${colors.red('Error:')} ${e.message}`;
+    console.error(msg);
     process.exit(1);  
   }
 }

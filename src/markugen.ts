@@ -111,6 +111,9 @@ export default class Markugen
     this.preprocessor = new Preprocessor(this, this.options.vars);
     // validate the options
     this.validate();
+
+    //console.dir(this.options, {depth:null})
+    //process.exit()
   }
   /**
    * Returns true if the given file is relative to the input directory or is
@@ -374,13 +377,10 @@ export default class Markugen
    */
   public isExcluded(file:string):boolean
   {
-    for(const exclude of this.options.exclude as string[])
-      if (file.indexOf(exclude) !== -1) 
-        return true;
-    const parts = path.parse(file);
-    if(!this.options.includeHidden && parts.name.startsWith('.'))
-      return true;
-    return false;
+    for(const exclude of this.options.exclude)
+      if (file === exclude) return true;
+    // check the hidden files and folders
+    return !this.options.includeHidden && path.basename(file).startsWith('.');
   }
   
   /**
@@ -483,8 +483,8 @@ export default class Markugen
    */
   private checkExcluded()
   {
-    if (!Array.isArray(this.options.exclude)) 
-      this.options.exclude = [this.options.exclude];
+    // assets should be excluded
+    for (const ass of this.options.assets) this.options.exclude.push(ass);
     this.options.exclude = this.filterRelative(this.options.exclude);
   }
   /**
@@ -492,7 +492,6 @@ export default class Markugen
    */
   private checkJs()
   {
-    if (!Array.isArray(this.options.js)) this.options.js = [this.options.js];
     this.options.js = this.filterRelative(this.options.js);
   }
   /**
@@ -500,7 +499,6 @@ export default class Markugen
    */
   private checkCss()
   {
-    if (!Array.isArray(this.options.css)) this.options.css = [this.options.css];
     this.options.css = this.filterRelative(this.options.css);
   }
   /**
