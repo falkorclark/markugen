@@ -60,9 +60,9 @@ async function main()
         type: 'boolean',
         default: false,
       },
-      chrome: {
-        alias: ['g'],
-        describe: 'the path to the Chrome executable. This is only required ' +
+      browser: {
+        alias: ['b'],
+        describe: 'the path to the Chrome or Firefox executable. This is only required ' +
           'if --pdf is true and Markugen is unable to locate the executable.',
         type: 'string',
         default: Markugen.findChrome(),

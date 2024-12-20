@@ -1,7 +1,7 @@
 
 import colors from 'colors';
 import path from 'node:path';
-import fs from 'node:fs';
+import fs from 'fs-extra';
 import os from 'node:os';
 import Generator from './generator';
 import { version, name, homepage } from '../package.json';
@@ -82,7 +82,7 @@ export default class Markugen
       output: './output',
       outputName: '',
       pdf: false,
-      chrome: '',
+      browser: Markugen.findChrome() ?? '',
       exclude: [],
       title: 'Markugen v' + Markugen.version,
       inheritTitle: false,
@@ -226,8 +226,8 @@ export default class Markugen
     }
 
     // handle pdf options
-    if (this.options.pdf && (!this.options.chrome || !fs.existsSync(this.options.chrome)))
-      throw new Error('Unable to locate Chrome executable, cannot generate PDFs');
+    if (this.options.pdf && (!this.options.browser || !fs.existsSync(this.options.browser)))
+      throw new Error(`Unable to locate Chrome executable, cannot generate PDFs [${this.options.browser}]`);
 
     // output string only valid for input string
     if (this.options.outputFormat === 'string' && !this.isInputFile && this.options.format !== 'string')
@@ -278,7 +278,10 @@ export default class Markugen
   /**
    * @returns true if the input given is a single file
    */
-  public get isInputFile() { return fs.existsSync(this.input) && fs.lstatSync(this.input).isFile(); }
+  public get isInputFile() 
+  { 
+    return fs.existsSync(this.input) && fs.lstatSync(this.input).isFile(); 
+  }
   /**
    * @returns true if the input given is a string
    */
@@ -392,8 +395,9 @@ export default class Markugen
     {
       case 'win32': return Markugen.findChromeWindows();
       case 'darwin': return Markugen.findChromeMac();
-      default: return Markugen.findChromeLinux();
+      case 'linux': return Markugen.findChromeLinux();
     }
+    return undefined;
   }
 
   /**

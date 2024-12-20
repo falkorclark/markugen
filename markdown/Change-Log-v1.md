@@ -11,7 +11,9 @@ moving forward.
 * fix for newlines in cli input
 * output format
 * output name
-* assets not automatic
+* extensions added to allow custom extensions like mdx
+* keep assets option
+* removed shelljs package dependency, replaced with fs-extra
 
 ## v1.1.2
 This is a very small release that exports some extra utility functions and

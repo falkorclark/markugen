@@ -1,7 +1,7 @@
 import { MarkedExtension, Token } from 'marked';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import fs from 'node:fs';
+import fs from 'fs-extra';
 import Markugen from '../markugen';
 
 export interface Options 
@@ -52,14 +52,14 @@ function commands(token:Token, options:Options)
     }
     else if (match.groups.cmd === 'import')
     {
-      const reldir = options.file ? path.dirname(options.file) : process.cwd();
-      const importfile = path.resolve(reldir, match.groups.args);
-      if (fs.existsSync(importfile))
+      const relative = options.file ? path.dirname(options.file) : process.cwd();
+      const importFile = path.resolve(relative, match.groups.args);
+      if (fs.existsSync(importFile))
       {
-        options.markugen.log('Importing:', importfile);
-        token.text = fs.readFileSync(importfile, {encoding: 'utf8'});
+        options.markugen.log('Importing:', importFile);
+        token.text = fs.readFileSync(importFile, {encoding: 'utf8'});
       }
-      else options.markugen.warning(`Unable to locate import file [${importfile}]`);
+      else options.markugen.warning(`Unable to locate import file [${importFile}]`);
     }
   }
 }

@@ -1,7 +1,6 @@
 
 import path from 'node:path';
-import fs, { lstat, lstatSync } from 'node:fs';
-import shell from 'shelljs';
+import fs from 'fs-extra';
 import colors from 'colors';
 import Markugen from './markugen';
 
@@ -21,7 +20,8 @@ import { Page, PageConfig, Sitemap } from './page';
 
 export * from './page';
 
-interface MarkdownEntry {
+interface MarkdownEntry 
+{
   path:string,
   entry:string,
   md?:string,
@@ -127,7 +127,7 @@ export default class Generator
 
     // prepare the browser
     const browser = await puppeteer.launch({ 
-      executablePath: this.mark.options.chrome 
+      executablePath: this.mark.options.browser 
     });
     this.puppeteer = {
       browser: browser,
@@ -181,11 +181,11 @@ export default class Generator
     if (this.mark.clearOutput && fs.existsSync(this.mark.output))
     {
       this.mark.log('Clearing Output:', this.mark.output);
-      shell.rm('-rf', this.mark.output);
+      fs.removeSync(this.mark.output);
     }
 
     // create the directory
-    if (!fs.existsSync(this.mark.output)) shell.mkdir('-p', this.mark.output);
+    if (!fs.existsSync(this.mark.output)) fs.ensureDirSync(this.mark.output);
 
     // write and set the styles
     this.writeStyles();
@@ -210,16 +210,9 @@ export default class Generator
     // delete generated files
     if (this.mark.options.pdf)
     {
-      for (const file of this.generated)
-        if (fs.existsSync(file)) shell.rm('-rf', file);
-      if (!this.mark.options.keepAssets) 
-      {
-        for (const file of this.assets)
-        {
-          const full = path.resolve(this.mark.output, file);
-          if (fs.existsSync(full)) shell.rm('-rf', full);
-        }
-      }
+      for (const file of this.generated) fs.removeSync(file);
+      if (!this.mark.options.keepAssets)
+        for (const file of this.assets) fs.removeSync(file);
     }
   }
 
@@ -326,15 +319,12 @@ export default class Generator
       if (fs.existsSync(file))
       {
         const stat = fs.statSync(file);
-        let out = this.mark.output;
+        const out = path.join(this.mark.output, stat.isFile() ? path.dirname(asset) : asset);
+
         // include directory structure with files
-        if (stat.isFile())
-        {
-          out = path.resolve(this.mark.output, path.dirname(asset));
-          shell.mkdir('-p', out);
-        }
         this.mark.log('Copy:', file);
-        shell.cp('-urf', file, out);
+        fs.ensureDirSync(out);
+        fs.copySync(file, out);
       }
       else this.mark.warning(`Given asset does not exist [${colors.red(file)}]`);
     }
@@ -367,7 +357,7 @@ export default class Generator
     const mfile = path.resolve(dir, 'markugen.json');
     if (fs.existsSync(mfile))
     {
-      try { mark = JSON.parse(fs.readFileSync(mfile, {encoding: 'utf8'})); }
+      try { mark = fs.readJsonSync(mfile); }
       catch(e:any) { this.mark.warning(`${e.message} [${mfile}]`); }
       if (!Array.isArray(mark))
       {
@@ -469,7 +459,9 @@ export default class Generator
   {
     const dot = file.lastIndexOf('.');
     // check the extension
-    return dot > 0 && dot + 1 < file.length && this.mark.options.extensions.includes(file.slice(dot + 1));
+    return dot > 0 && 
+      dot + 1 < file.length && 
+      this.mark.options.extensions.includes(file.slice(dot + 1));
   }
 
   /**
@@ -601,7 +593,7 @@ export default class Generator
     for(let i = 0; i < subs.length - 1; i++) 
     {
       dir = path.join(dir, subs[i]);
-      shell.mkdir('-p', dir);
+      fs.ensureDirSync(dir);
       depth = '../' + depth;
     }
 

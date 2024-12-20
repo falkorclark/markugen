@@ -50,10 +50,10 @@ export interface Options
    */
   pdf?:boolean,
   /**
-   * The path to the Chrome executable. This is only required if {@link pdf}
+   * The path to the Chrome or Firefox executable. This is only required if {@link pdf}
    * is true and Markugen is unable to locate the executable.
    */
-  chrome?:string,
+  browser?:string,
   /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of
