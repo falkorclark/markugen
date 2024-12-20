@@ -20,4 +20,4 @@ jobs:
           install-dependencies: true
           install-chromedriver: true
       - run: npm ci
-      - run: npm test -- ${{ steps.chrome.outputs.chrome-path }}
+      - run: npm test -- ${{ steps.chrome.outputs.chromedriver-path }}
