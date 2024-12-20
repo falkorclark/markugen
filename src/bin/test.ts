@@ -3,6 +3,9 @@ import Markugen, { Options } from '../markugen';
 
 async function main()
 {
+  let chrome = undefined;
+  if (process.argv.length > 1) chrome = process.argv[1];
+
   const options:Options = {
     input: 'devops/tests',
     output: 'tests/html',
@@ -19,6 +22,7 @@ async function main()
   // pdf output test
   options.output = 'tests/pdf';
   options.pdf = true;
+  options.browser = chrome;
   mark = new Markugen(options);
   await mark.generate();
 }

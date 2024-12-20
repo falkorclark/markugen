@@ -15,8 +15,6 @@ jobs:
         with:
           node-version: 20
       - uses: browser-actions/setup-chrome@v1
-        with:
-          install-dependencies: true
-          install-chromedriver: true
+        id: chrome
       - run: npm ci
-      - run: npm test
+      - run: npm test -- ${{ steps.chrome.outputs.chrome-path }}
