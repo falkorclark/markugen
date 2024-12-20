@@ -126,6 +126,7 @@ export default class Generator
     this.mark.group(colors.green('Generating:'), 'pdf');
 
     // prepare the browser
+    this.mark.log('Chrome Found:', this.mark.options.browser);
     const browser = await puppeteer.launch({ 
       executablePath: this.mark.options.browser 
     });
