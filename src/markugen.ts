@@ -227,7 +227,7 @@ export default class Markugen
 
     // handle pdf options
     if (this.options.pdf && (!this.options.browser || !fs.existsSync(this.options.browser)))
-      throw new Error(`Unable to locate Chrome executable, cannot generate PDFs [${this.options.browser}]`);
+      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
 
     // output string only valid for input string
     if (this.options.outputFormat === 'string' && !this.isInputFile && this.options.format !== 'string')
@@ -451,7 +451,7 @@ export default class Markugen
    */
   public static findChromeLinux():string|undefined
   {
-    const result = spawnSync('which chrome');
+    const result = spawnSync('which google-chrome');
     if (result.status === 0 && result.stdout) 
       return result.stdout.toString().trim();
     return undefined;
