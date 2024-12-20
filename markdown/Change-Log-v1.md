@@ -14,6 +14,7 @@ moving forward.
 * extensions added to allow custom extensions like mdx
 * keep assets option
 * removed shelljs package dependency, replaced with fs-extra
+* errors turned into throws
 
 ## v1.1.2
 This is a very small release that exports some extra utility functions and

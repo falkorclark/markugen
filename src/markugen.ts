@@ -451,7 +451,7 @@ export default class Markugen
    */
   public static findChromeLinux():string|undefined
   {
-    const result = spawnSync('which -a google-chrome chrome');
+    const result = spawnSync('which chrome');
     if (result.status === 0 && result.stdout) 
       return result.stdout.toString().trim();
     return undefined;
