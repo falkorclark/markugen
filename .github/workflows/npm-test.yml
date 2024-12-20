@@ -5,7 +5,6 @@ name: NPM Test
 
 on:
   pull_request:
-    types: [opened, reopened]
 
 jobs:
   test:
