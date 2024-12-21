@@ -28,6 +28,14 @@ async function main()
     options.browser = chrome;
     mark = new Markugen(options);
     await mark.generate();
+
+    // doc output test
+    options.input = 'markdown';
+    options.output = 'tests/docs';
+    options.assets = ['examples'];
+    options.extensions = [];
+    mark = new Markugen(options);
+    mark.generateSync();
   }
   catch(e:any) 
   { 

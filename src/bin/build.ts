@@ -17,7 +17,6 @@ function docs()
     input: 'markdown',
     output: 'docs',
     assets: ['examples'],
-    exclude: ['examples'],
     clearOutput: true,
   });
   mark.generate();

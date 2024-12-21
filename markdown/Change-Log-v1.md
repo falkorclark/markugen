@@ -4,17 +4,68 @@ The log was started at version 1.1.0 and will be continued for each new release
 moving forward.
 
 ## v1.2.0
+This release fixes a number of issues that were found while working on PDF
+generation.
 
-* no default assets
-* no pdf only
-* errors are thrown
-* fix for newlines in cli input
-* output format
-* output name
-* extensions added to allow custom extensions like mdx
-* keep assets option
-* removed shelljs package dependency, replaced with fs-extra
-* errors turned into throws
+### Error Handling
+When errors are encountered during construction or generation, they are now
+thrown. In previous releases, errors would be output to the console and
+`process.exit()` was called which would crash your application. This change 
+means you should wrap your Markugen calls in a `try/catch` block like so:
+
+~~~js
+try
+{
+  const mark = new Markugen({...});
+  mark.generateSync();
+}
+catch(e)
+{
+  // handle the error here
+}
+~~~
+
+### PDF Generation
+PDF generation was not fully flushed out in previous releases; therefore, some
+improvements were made to how PDF documents are generated.
+
+* Removed the `--pdf-only` option; generation is either HTML or PDF, not both.
+* During PDF generation, assets are copied over to ensure linked assets like
+  images are embedded in the PDF properly; however, they are removed from the
+  output once generation is complete. The `--keep-assets` option allows the
+  user to tell Markugen to keep the assets in the output folder after 
+  generation is complete.
+
+### Output Options
+Two new options were added for customizing the output that is generated:
+
+* The `--output-format` option was added for determining the format of the
+  output that is generated. Previously, if you provided `--format string` as
+  your input, the output would be a string as well; however, the new
+  option allows you to specify that the output should be a file with the
+  `--output-format file` option. The `--output-format` option is only valid
+  when the input format is also `string` and the `--pdf` option is `false`.
+* The `--output-name` option was added to allow the user to specify the name
+  of the file that is output when `--output-format file` is used. This option
+  is only valid when `--input-format string` or the `--input` path is a
+  single file and not a directory.
+
+### Miscellaneous
+* Removed [shelljs](https://www.npmjs.com/package/shelljs) package dependency 
+  and replaced it with [fs-extra](https://www.npmjs.com/package/fs-extra)
+* Added a new option `--extensions` that allows the user to supply a list of
+  extensions to search for documents with. By default, Markugen will search
+  for the `md` extension only.
+* Previous releases would look for a folder called `assets` in the `--input`
+  directory and assume they were assets by adding them to your `--assets` list
+  automatically. This release no longer looks for the `assets` folder by
+  default; therefore, you must provide the folder as an asset using the
+  `--assets` option.
+* Fixed a bug with newlines when using the `--format string` option with 
+  the CLI. When passing a string as input that contained newlines, the newlines 
+  were being escaped twice which resulted in output that did not have line
+  breaks where the newlines occurred. This release fixes this behavior so 
+  newlines are treated properly in string input.
 
 ## v1.1.2
 This is a very small release that exports some extra utility functions and
