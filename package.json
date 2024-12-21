@@ -4,11 +4,11 @@
   "description": "Markdown to HTML/PDF static site generation tool",
   "repository": {
     "type": "git",
-    "url": "https://github.com/falkorclark/markugen.git"
+    "url": "git+https://github.com/falkorclark/markugen.git"
   },
   "homepage": "https://falkorclark.com/markugen/index.html",
   "bin": {
-    "markugen": "./lib/bin/cli.js"
+    "markugen": "lib/bin/cli.js"
   },
   "module": "./lib/markugen.js",
   "main": "./lib/markugen.js",
