@@ -15,8 +15,9 @@ async function main()
       'strip-aliased': true,
       'strip-dashed': true,
     })
+    .showHelpOnFail(false)
+    .alias(['h'], 'help')
     .help('h')
-    .alias(['h', '?'], 'help')
     .options({
       format: {
         alias: ['input-format', 'if'],

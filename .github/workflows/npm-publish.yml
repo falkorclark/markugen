@@ -16,8 +16,9 @@ jobs:
         with:
           node-version: 20
       - uses: browser-actions/setup-chrome@v1
+        id: chrome
       - run: npm ci
-      - run: npm test
+      - run: npm test ${{ steps.chrome.outputs.chrome-path }}
 
   publish-npm:
     needs: build
@@ -27,8 +28,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - uses: browser-actions/setup-chrome@v1
       - run: npm ci
       - run: npm publish --public
         env:

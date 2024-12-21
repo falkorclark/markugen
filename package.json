@@ -52,7 +52,7 @@
     "start": "node --import tsx src/bin/cli.ts",
     "build": "node --import tsx src/bin/build.ts",
     "test": "npx eslint src --quiet && node --import tsx src/bin/test.ts",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

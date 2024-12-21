@@ -1,7 +1,7 @@
 import { MarkedExtension, Token } from 'marked';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import fs from 'fs-extra';
+import fs from 'node:fs';
 import Markugen from '../markugen';
 
 export interface Options 
@@ -37,29 +37,25 @@ function commands(token:Token, options:Options)
     else if (match.groups.cmd === 'exec')
     {
       options.markugen.log('Executing:', match.groups.args);
-      const args = match.groups.args.split(' ');
-      const result = spawnSync(
-        args[0], args.length > 1 ? args.slice(1) : [],
-        { shell: true, encoding: 'utf8' }
-      );
-      if (!result.error)
-      {
-        const text = (result.stdout + '\n' + result.stderr).trim();
-        // remove coloring characters
-        token.text = text.replace(/(\x1b[^m]+m)/gi, '');
-      }
-      else token.text = JSON.stringify(result.error);
+      const result = spawnSync(match.groups.args, [], {
+        shell: true,
+        encoding: 'utf8', 
+        windowsVerbatimArguments: process.platform === 'win32' ? true : undefined,
+      });
+      const text = (result.stdout + '\n' + result.stderr).trim();
+      // remove coloring characters
+      token.text = text.replace(/(\x1b[^m]+m)/gi, '');
     }
     else if (match.groups.cmd === 'import')
     {
-      const relative = options.file ? path.dirname(options.file) : process.cwd();
-      const importFile = path.resolve(relative, match.groups.args);
-      if (fs.existsSync(importFile))
+      const reldir = options.file ? path.dirname(options.file) : process.cwd();
+      const importfile = path.resolve(reldir, match.groups.args);
+      if (fs.existsSync(importfile))
       {
-        options.markugen.log('Importing:', importFile);
-        token.text = fs.readFileSync(importFile, {encoding: 'utf8'});
+        options.markugen.log('Importing:', importfile);
+        token.text = fs.readFileSync(importfile, {encoding: 'utf8'});
       }
-      else options.markugen.warning(`Unable to locate import file [${importFile}]`);
+      else options.markugen.warning(`Unable to locate import file [${importfile}]`);
     }
   }
 }

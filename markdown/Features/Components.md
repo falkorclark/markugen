@@ -146,7 +146,7 @@ block with the output from the execution. The following example executes the
 `echo` command with a string:
 
 ##### Markdown
-~~~sh
+~~~bat
 \markugen.exec echo Hello World!
 ~~~
 
