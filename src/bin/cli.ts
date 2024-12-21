@@ -12,49 +12,66 @@ async function main()
   const args = yargs(hideBin(process.argv))
     .parserConfiguration({
       'duplicate-arguments-array': false,
+      'strip-aliased': true,
+      'strip-dashed': true,
     })
+    .showHelpOnFail(false)
+    .alias(['h'], 'help')
     .help('h')
-    .alias(['h', '?'], 'help')
     .options({
       format: {
-        describe: 'format of input and output',
+        alias: ['input-format', 'if'],
+        describe: 'format of the input, string of markdown or path to file/directory',
+        choices: ['file', 'string'],
+        default: 'file',
+      },
+      'output-format': {
+        alias: ['of'],
+        describe: 'format of the output, html files or string of html ' +
+          '(string is only valid if format is also string or input is a file)',
         choices: ['file', 'string'],
         default: 'file',
       },
       input: {
         alias: ['i'],
-        describe:
-          'the directory to locate the markdown files, a single file, or a string of markdown',
+        describe: 'the directory to locate the markdown files, a single file, ' +
+          'or a string of markdown',
         type: 'string',
         demandOption: true,
+      },
+      extensions: {
+        alias: ['exts'],
+        describe: 'list of file extensions to search the input directory for',
+        type: 'array',
+        default: ['md'],
       },
       output: {
         alias: ['o'],
         describe: 'directory to write the output',
         default: './output',
       },
+      outputName: {
+        alias: ['n', 'on'],
+        describe: 'base name of the file to output, only used when --input is ' +
+          'a file or string, defaults to index for strings and the file name for files',
+      },
       pdf: {
         alias: ['p'],
-        describe: 'generates PDF files as additional output',
+        describe: 'generates PDF files instead of html files',
         type: 'boolean',
         default: false,
       },
-      'pdf-only': {
-        alias: ['po'],
-        describe: 'implies --pdf and only generates the PDF files',
-        type: 'boolean',
-        default: false,
-      },
-      chrome: {
-        alias: ['g'],
-        describe: 'the path to the Chrome executable. This is only required ' +
+      browser: {
+        alias: ['b'],
+        describe: 'the path to the Chrome or Firefox executable. This is only required ' +
           'if --pdf is true and Markugen is unable to locate the executable.',
         type: 'string',
         default: Markugen.findChrome(),
       },
       exclude: {
         alias: ['x'],
-        describe: 'list of files or folders to exclude from generation',
+        describe: 'list of files or folders to exclude from generation, paths ' +
+          'should be relative to the input directory',
         type: 'array',
       },
       title: {
@@ -81,13 +98,11 @@ async function main()
       },
       home: {
         alias: ['index'],
-        describe:
-          'sets the home page for the site, default uses the first root page',
+        describe: 'sets the home page for the site, default uses the first root page',
         type: 'string',
       },
       toc: {
-        describe:
-          'maximum header depth to output in the Table of Contents, values less than ' +
+        describe: 'maximum header depth to output in the Table of Contents, values less than ' +
           'or equal to zero will hide the Table of Contents.',
         type: 'number',
         default: 3,
@@ -98,8 +113,8 @@ async function main()
         type: 'boolean',
       },
       favicon: {
-        describe:
-          'relative path to an icon to use as the favicon, must be relative to the input directory',
+        describe: 'relative path to an icon to use as the favicon, must be ' +
+          'relative to the input directory',
         type: 'string',
       },
       assets: {
@@ -107,9 +122,9 @@ async function main()
         describe: 'list of files or folders to copy to the output',
         type: 'array',
       },
-      'clear-assets': {
-        alias: ['ca'],
-        describe: 'if true and --pdf-only, will clear the assets after generation',
+      'keep-assets': {
+        alias: ['k', 'ka'],
+        describe: 'if true and --pdf, will keep the assets after generation',
         type: 'boolean',
         default: false,
       },
@@ -158,18 +173,18 @@ async function main()
         type: 'boolean',
       },
     })
-    .config('config', 'provide a JSON configuration file for options')
     .scriptName(name)
     .parse() as Options;
   try 
   {
-    await new Markugen(args).generate();
+    const result = await new Markugen(args, true).generate();
+    if (args.outputFormat === 'string' && result) console.log(result);
   }
-  catch (e:any) 
+  catch(e:any) 
   { 
-    console.error(
-      colors.red(args.debug ? `${e.message}\n${e.stack}` : e.message)
-    ); 
+    const msg = args.debug ? colors.red(e.stack) : `${colors.red('Error:')} ${e.message}`;
+    console.error(msg);
+    process.exit(1);  
   }
 }
 

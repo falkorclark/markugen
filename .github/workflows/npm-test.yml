@@ -1,0 +1,20 @@
+# This workflow will execute the tests on PR submission
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: NPM Test
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - run: npm ci
+      - run: npm test ${{ steps.chrome.outputs.chrome-path }}

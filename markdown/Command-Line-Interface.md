@@ -44,10 +44,8 @@ commands:
 ```bash
 markugen help
 # or
-markugen -?
-#or
 markugen -h
-#or
+# or
 markugen --help
 ```
 

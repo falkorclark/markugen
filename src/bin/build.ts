@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
+import fs from 'fs-extra';
 import Markugen from '../markugen';
-import shell from 'shelljs';
 
 function main()
 {
@@ -16,8 +16,7 @@ function docs()
   const mark = new Markugen({
     input: 'markdown',
     output: 'docs',
-    assets: 'examples',
-    exclude: 'examples',
+    assets: ['examples'],
     clearOutput: true,
   });
   mark.generate();
@@ -28,7 +27,7 @@ function docs()
  */
 function tsc() 
 {
-  shell.rm('-rf', './lib');
+  fs.removeSync('./lib');
   const result = spawnSync(
     'npx', ['tsc', '-p', 'tsconfig.json'],
     {shell:true, encoding:'utf8'}

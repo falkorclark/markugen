@@ -37,18 +37,14 @@ function commands(token:Token, options:Options)
     else if (match.groups.cmd === 'exec')
     {
       options.markugen.log('Executing:', match.groups.args);
-      const args = match.groups.args.split(' ');
-      const result = spawnSync(
-        args[0], args.length > 1 ? args.slice(1) : [],
-        { shell: true, encoding: 'utf8' }
-      );
-      if (!result.error)
-      {
-        const text = (result.stdout + '\n' + result.stderr).trim();
-        // remove coloring characters
-        token.text = text.replace(/(\x1b[^m]+m)/gi, '');
-      }
-      else token.text = JSON.stringify(result.error);
+      const result = spawnSync(match.groups.args, [], {
+        shell: true,
+        encoding: 'utf8', 
+        windowsVerbatimArguments: process.platform === 'win32' ? true : undefined,
+      });
+      const text = (result.stdout + '\n' + result.stderr).trim();
+      // remove coloring characters
+      token.text = text.replace(/(\x1b[^m]+m)/gi, '');
     }
     else if (match.groups.cmd === 'import')
     {
