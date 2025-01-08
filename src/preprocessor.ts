@@ -1,11 +1,12 @@
 
-import Markugen from './markugen';
+import { Generator } from './generator';
 import fs from 'fs-extra';
 import path from 'node:path';
 import os from 'node:os';
 import colors from 'colors';
+import Markugen from './markugen';
 
-export default class Preprocessor
+export class Preprocessor
 {
   /**
    * The regular expression used to find the templates
@@ -16,9 +17,9 @@ export default class Preprocessor
    */
   public readonly filter = /(\\\}\})|(process\s*.\s*exit\s*\(.*?\))|(import\s*\(.*?\))/gs;
   /**
-   * Instance of Markugen
+   * Instance of the generator
    */
-  public readonly mark:Markugen;
+  public readonly generator:Generator;
   /**
    * Variables to define before template expansion
    */
@@ -26,13 +27,12 @@ export default class Preprocessor
 
   /**
    * Constructs a new preprocessor with the given variables
-   * @param vars the variables to define before expansion
    */
-  public constructor(mark:Markugen, vars:Record<string,any> = {})
+  public constructor(generator:Generator)
   {
-    this.mark = mark;
-    this.vars = {...vars};
-    this.vars['markugen'] = Markugen.toObject(mark.options.timestamp ? new Date() : undefined);
+    this.generator = generator;
+    this.vars = structuredClone(generator.options.vars);
+    this.vars['markugen'] = Markugen.toObject(generator.options.timestamp ? new Date() : undefined);
   }
 
   /**
@@ -100,7 +100,7 @@ export default class Preprocessor
     }
     catch(e:any)
     {
-      this.mark.warning(
+      this.generator.mark.warning(
         `Preprocesser failed when expanding ${colors.yellow(`{{${filtered}}}`)} ` +
         colors.red(`[${e.message}` + (file ? ` in ${file}]` : ']'))
       );

@@ -3,7 +3,7 @@
  * Defines the properties of the markugen variable used by the 
  * {@link Preprocessor} when expanding templates.
  */
-export default interface IMarkugen
+export interface IMarkugen
 {
   /**
    * The version of Markugen used

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-import Markugen, { Options } from '../markugen';
+import Markugen, { GeneratorOptions, MarkugenOptions } from '../markugen';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { version, name } from '../../package.json';
 import colors from 'colors';
+
+type Options = MarkugenOptions & GeneratorOptions;
 
 // Handle startup
 async function main() 
@@ -175,16 +177,26 @@ async function main()
     })
     .scriptName(name)
     .parse() as Options;
+
+    
+  // quiet mode if string output
+  if (args.outputFormat === 'string' && !args.pdf) args.quiet = true;
+  // unescape newlines provided in the string
+  if (args.format === 'string') args.input = args.input.replace(/\\n/g, '\n');
+  // this is the cli
+  args.cli = true;
+  // create the markugen instance
+  const mark = new Markugen(args);
+
   try 
   {
-    const result = await new Markugen(args, true).generate();
-    if (args.outputFormat === 'string' && result) console.log(result);
+    const result = await mark.generate(args);
+    if (args.outputFormat === 'string' && !args.pdf && result) console.log(result);
   }
-  catch(e:any) 
+  catch (e:any)
   { 
-    const msg = args.debug ? colors.red(e.stack) : `${colors.red('Error:')} ${e.message}`;
-    console.error(msg);
-    process.exit(1);  
+    mark.error(e);
+    process.exit(1); 
   }
 }
 

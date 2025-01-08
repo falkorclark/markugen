@@ -1,11 +1,10 @@
 import { Theme, Themes } from './themes';
-export { Theme, Themes } from './themes';
 import Markugen from './markugen';
 
 /**
- * Markugen configuration options
+ * Generator configuration options
  */
-export interface Options 
+export interface GeneratorOptions 
 {
   /**
    * The format of the {@link input}. If string is used for
@@ -147,16 +146,4 @@ export interface Options
    * If true, the {@link output} directory will be cleared before generation
    */
   clearOutput?:boolean,
-  /**
-   * If true, console output will be colored, else it will not
-   */
-  color?:boolean,
-  /**
-   * If true, markugen will silence its output.
-   */
-  quiet?:boolean,
-  /**
-   * Used internally to show full call stacks when an uncaught exception occurs.
-   */
-  debug?:boolean,
 }

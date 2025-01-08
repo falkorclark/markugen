@@ -14,10 +14,14 @@ import markedLinks from './extensions/markedlinks';
 import markedCommands from './extensions/markedcommands';
 import { tabsDirective } from './extensions/tabdirectives';
 import markedCopySaveCode from './extensions/markedcopysavecode';
-import puppeteer, { Browser, Page as PuppeteerPage } from 'puppeteer-core';
 import { Page, PageConfig, Sitemap } from './page';
-import url from 'url';
+import { defaultThemes, Themes } from './themes';
+import { Preprocessor } from './preprocessor';
+import { timeFormat } from './utils';
+import { GeneratorOptions } from './generatoroptions';
 
+export * from './themes';
+export * from './preprocessor';
 export * from './page';
 
 interface MarkdownEntry 
@@ -27,7 +31,7 @@ interface MarkdownEntry
   md?:string,
 }
 
-export default class Generator
+export class Generator
 {
   /**
    * The name of the markugen generated files
@@ -41,18 +45,27 @@ export default class Generator
    */
   public readonly mark:Markugen;
   /**
+   * Contains the options that were given on construction
+   */
+  public readonly options:Required<GeneratorOptions>;
+  /**
    * Path to the templates
    */
   public readonly templates:string;
   /**
    * Generated sitemap
    */
-  public readonly sitemap:Sitemap;
+  private sitemap:Sitemap = {
+    name: 'sitemap', 
+    title: 'Markugen v' + Markugen.version, 
+    toc: 3,
+    footer: '',
+    home: '',
+  };
   /**
    * The html files that were generated
    */
-  public readonly generated:string[] = [];
-  
+  private generated:string[] = [];
   /**
    * JavaScript to embed in each page
    */
@@ -74,77 +87,335 @@ export default class Generator
    */
   private assets:string[] = [];
   /**
-   * Puppeteer browser instance and page if generating PDFs
+   * The preprocessor to use for template expansion
    */
-  private puppeteer?:{ browser:Browser, page:PuppeteerPage };
+  private preprocessor:Preprocessor;
+  /**
+   * The generate start time for recording elapsed time
+   */
+  private startTime:[number,number]|undefined;
+  /**
+   * Used internally to prevent multiple async calls to {@link generate}
+   */
+  private isActive:boolean = false;
 
   /**
    * Constructs a new generator with the given markugen options
    */
-  public constructor(mark:Markugen)
+  public constructor(mark:Markugen, options:GeneratorOptions)
   {
     this.mark = mark;
-    this.sitemap = {
-      input: '',
-      name: 'sitemap', 
-      title: mark.options.title, 
-      toc: mark.options.toc,
-      footer: mark.options.footer,
-      home: '',
+    this.options = {
+      input: path.resolve(options.input),
+      format: options.format ?? 'file',
+      extensions: options.extensions ?? ['md'],
+      outputFormat: options.outputFormat ?? 'file',
+      output: path.resolve(options.output ?? './output'),
+      outputName: options.outputName ?? '',
+      pdf: options.pdf ?? false,
+      browser: options.browser ?? Markugen.findChrome() ?? '',
+      exclude: options.exclude ?? [],
+      title: options.title ?? 'Markugen v' + Markugen.version,
+      inheritTitle: options.inheritTitle ?? false,
+      footer: options.footer ?? '',
+      timestamp: options.timestamp ?? true,
+      home: options.home ?? '',
+      toc: options.toc ?? 3,
+      embed: options.embed ?? false,
+      favicon: options.favicon ?? '',
+      assets: options.assets ?? [],
+      keepAssets: options.keepAssets ?? false,
+      script: options.script ?? '',
+      js: options.js ?? [],
+      style: options.style ?? '',
+      css: options.css ?? [],
+      theme: options.theme ?? defaultThemes,
+      vars: options.vars ?? {},
+      includeHidden: options.includeHidden ?? false,
+      clearOutput: options.clearOutput ?? false,
     };
     this.templates = path.resolve(mark.root, 'templates');
     if (!fs.existsSync(this.templates)) 
       throw Error(`Unable to locate templates directory [${this.templates}]`);
+    // create the preprocessor
+    this.preprocessor = new Preprocessor(this);
+    // validate the options
+    this.validate();
   }
 
   /**
-   * Generates the documentation. This is synchronous and will ignore the 
-   * {@link Markugen.options.pdf} flag. If you are generating PDFs, you must
-   * use the async version {@link generatePdfs}.
-   * @returns the path to the home page, the html if format === 'string', or 
+   * Generates the documentation.
+   * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public generate():string|undefined
+  public generate():string|string[]|undefined
   {
     // prepares for generation
     this.prepare();
-    // generate the output
-    return this.generateHtml();
+    // write the html files
+    this.mark.group(colors.green('Generating:'), 'html');
+    let result = this.writeChildren(this.sitemap);
+
+    // result should be the home file path
+    if (this.options.outputFormat === 'file')
+      result = path.resolve(this.output, this.sitemap.home);
+
+    this.mark.groupEnd();
+    this.mark.log('Generating Finished:', this.finish());
+    return this.options.outputFormat === 'string' ? result : this.generated;
   }
 
-  /**
+  /** 
    * Generates the documentation as PDFs. If the pdf option is given, this
    * version of the {@link generate} method must be called or the PDFs will
    * not be generated.
    */
-  public async generatePdfs():Promise<string|undefined>
+  // public async generatePdfs():Promise<string|undefined>
+  // {
+  //   // generate the html first
+  //   const result = this.generateHtml();
+  //   if (!result) return undefined;
+
+  //   this.mark.group(colors.green('Generating:'), 'pdf');
+  //   // prepare the browser
+  //   this.mark.log('Browser:', this.options.browser);
+
+  //   const promises:Promise<void>[] = [];
+  //   for(const file of this.generated)
+  //   {
+  //     if (/\.html$/i.test(file))
+  //     {
+  //       promises.push(this.writePdf(file));
+  //     }
+  //   }
+  //   await Promise.all(promises);
+
+  //   // clean everything up
+  //   await this.cleanup();
+
+  //   this.mark.groupEnd();
+  //   this.mark.log('Generating Finished:', result.replace(/\.html$/i, '.pdf'));
+  //   // output elapsed time
+  //   this.finish();
+  // }
+  
+  /**
+   * @returns true if the input given is a single file
+   */
+  public get isInputFile() 
+  { 
+    return fs.existsSync(this.input) && fs.lstatSync(this.input).isFile(); 
+  }
+  /**
+   * @returns true if the input given is a string
+   */
+  public get isInputString() { return this.options.format === 'string'; }
+  /**
+   * @returns true if the input is a string or file
+   */
+  public get isInputSolo() { return this.isInputString || this.isInputFile; }
+  /**
+   * @returns the path to the input
+   */
+  public get input() { return this.options.input; }
+  /**
+   * @returns the path to the input directory
+   */
+  public get inputDir()
   {
-    // generate the html first
-    const result = this.generate();
-    if (!result) return undefined;
+    return this.isInputFile ? path.dirname(this.input) : this.input;
+  }
+  /**
+   * @returns the path to the output directory
+   */
+  public get output() { return this.options.output; }
+  /**
+   * @returns true if hidden files and folders should be included
+   */
+  public get includeHidden() { return this.options.includeHidden; }
+  /**
+   * @returns true if the output should be cleared first
+   */
+  public get clearOutput() { return this.options.clearOutput; }
+  /**
+   * Checks to see if the path is excluded.
+   * @param file the path to check for exclusion
+   * @returns true if the path is excluded, false otherwise
+   */
+  public isExcluded(file:string):boolean
+  {
+    for(const exclude of this.options.exclude)
+      if (file === exclude) return true;
+    // check the hidden files and folders
+    return !this.options.includeHidden && path.basename(file).startsWith('.');
+  }
+  /**
+   * Returns true if the given file is relative to the input directory or is
+   * a valid URL.
+   * @param file the file to check
+   * @returns true if the file is relative or a URL
+   */
+  public isRelative(file:string):boolean
+  {
+    // URLs are good to go 
+    if (URL.canParse(file)) return true;
+    // path cannot be absolute
+    if (path.isAbsolute(file)) return false;
+    // must be relative to the input directory
+    return fs.existsSync(path.resolve(this.inputDir, file));
+  }
+  
+  /**
+   * Validates the options and makes changes where necessary
+   */
+  private validate()
+  {
+    // must have at least one extension
+    if (this.options.extensions.length < 1) this.options.extensions.push('md');
 
-    this.mark.group(colors.green('Generating:'), 'pdf');
+    // pdf implies output format of file
+    if (this.options.pdf && this.options.outputFormat === 'string')
+    {
+      this.mark.warning(`Output format changing to ${colors.green('file')} for PDF generation`);
+      this.options.outputFormat = 'file';
+    }
 
-    // prepare the browser
-    this.mark.log('Browser:', this.mark.options.browser);
-    const browser = await puppeteer.launch({ 
-      executablePath: this.mark.options.browser 
+    // validate the input and options based on input
+    if (!this.isInputString && !fs.existsSync(this.options.input))
+      throw new Error(`Input does not exist [${colors.red(this.options.input)}]`);
+    
+    // set the name of the output file
+    if (this.isInputSolo && !this.options.outputName)
+    {
+      const name = this.isInputString ? 'index' : path.parse(this.options.input).name;
+      this.options.outputName = name;
+    }
+
+    // handle pdf options
+    if (this.options.pdf && !this.options.browser) this.options.browser = Markugen.findChrome() ?? '';
+    if (this.options.pdf && (!this.options.browser || !fs.existsSync(this.options.browser)))
+      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
+
+    // output string only valid for input string
+    if (this.options.outputFormat === 'string' && !this.isInputFile && this.options.format !== 'string')
+      throw new Error('Output format can only be string if input is a string or a file');
+
+    // string format implies embed
+    if (this.options.format === 'string' || this.options.outputFormat === 'string')
+      this.options.embed = true;
+    
+    // solo input implies inherit title
+    if (this.isInputSolo) this.options.inheritTitle = true;
+
+    // check on protected directories
+    if(this.options.clearOutput)
+    {
+      const nono = [
+        path.resolve('/'),
+        this.inputDir,
+        process.cwd(),
+      ];
+      if (nono.includes(this.output))
+      {
+        this.mark.warning(`Output set to protected directory [${colors.red(this.output)}], skipping clear output`);
+        this.options.clearOutput = false;
+      }
+    }
+
+    this.setTheme();
+    this.checkFavicon();
+    this.checkCss();
+    this.checkJs();
+    this.checkExcluded();
+  }
+
+  /**
+   * Computes the elapsed time and finishes everything
+   */
+  private finish():string
+  {
+    const end = process.hrtime(this.startTime);
+    const ms = end[0] * 1000 + end[1] / 1000000;
+    const elapsed = timeFormat(ms, {fixed: 2});
+    this.isActive = false;
+    return elapsed;
+  }
+  /**
+   * Checks that the files are relative to the input directory and filters
+   * out the ones that are not. Also resolves each path.
+   * @param files the files to check for relativeness
+   * @returns the new files with non-relative files removed
+   */
+  private filterRelative(files:string[])
+  {
+    const filtered = files.filter((file) => 
+    {
+      if (file === '') return false;
+      if (!this.isRelative(file))
+      {
+        this.mark.warning(`Given file is not relative to input directory [${colors.red(file)}]`);
+        return false;
+      }
+      return true;
     });
-    this.puppeteer = {
-      browser: browser,
-      page: await browser.newPage(),
-    };
+    // resolve to full paths
+    for (let i = 0; i < filtered.length; i++) 
+      filtered[i] = path.resolve(this.inputDir, filtered[i]);
+    return filtered;
+  }
 
-    // generate pdfs for all files generated
-    for(const file of this.generated)
-      if (/\.html$/i.test(file))
-        await this.writePdf(file);
-
-    // clean everything up
-    await this.cleanup();
-
-    this.mark.groupEnd();
-    this.mark.log('Generating Finished:', result.replace(/\.html$/i, '.pdf'));
+  /**
+   * Checks the validity of the excluded files
+   */
+  private checkExcluded()
+  {
+    // assets should be excluded
+    for (const ass of this.options.assets) this.options.exclude.push(ass);
+    this.options.exclude = this.filterRelative(this.options.exclude);
+  }
+  /**
+   * Checks the validity of the js files
+   */
+  private checkJs()
+  {
+    this.options.js = this.filterRelative(this.options.js);
+  }
+  /**
+   * Checks the validity of the css files
+   */
+  private checkCss()
+  {
+    this.options.css = this.filterRelative(this.options.css);
+  }
+  /**
+   * Sets the appropriate themes based on the given values
+   * @param themes the provided themes
+   */
+  private setTheme(themes?:Themes)
+  {
+    if (!themes) this.options.theme = defaultThemes;
+    else 
+    {
+      this.options.theme = {
+        light: themes.light ? 
+          {...defaultThemes.light, ...themes.light} : defaultThemes.light, 
+        dark: themes.dark ? 
+          {...defaultThemes.dark, ...themes.dark} : defaultThemes.dark, 
+      };
+    }
+  }
+  /**
+   * Checks the validity of the favicon
+   */
+  private checkFavicon()
+  {
+    if (this.options.favicon && !this.isRelative(this.options.favicon))
+    {
+      this.mark.warning(
+        `Given favicon is not relative to the input directory [${colors.red(this.options.favicon)}]`
+      );
+      this.options.favicon = '';
+    }
   }
 
   /**
@@ -152,9 +423,12 @@ export default class Generator
    */
   private prepare()
   {
-    this.sitemap.title = this.mark.options.title;
-    this.sitemap.toc = this.mark.options.toc;
-    this.sitemap.home = this.mark.options.home;
+    if (this.isActive) throw new Error('Generator already active, cannot call generate while active');
+    this.isActive = true;
+    this.startTime = process.hrtime();
+    this.sitemap.title = this.options.title;
+    this.sitemap.toc = this.options.toc;
+    this.sitemap.home = this.options.home;
     this.sitemap.children = {};
     this.style = undefined;
     this.script = undefined;
@@ -162,8 +436,8 @@ export default class Generator
     this.generated.length = 0;
 
     // collect all of the children and build the sitemap
-    if (!this.addChildren(this.mark.inputDir, this.sitemap))
-      throw new Error(`No markdown files found in [${colors.red(this.mark.inputDir)}]`);
+    if (!this.addChildren(this.inputDir, this.sitemap))
+      throw new Error(`No markdown files found in [${colors.red(this.inputDir)}]`);
 
     // set home to the first child with a page
     if (!this.sitemap.home && this.sitemap.children)
@@ -179,14 +453,14 @@ export default class Generator
     }
 
     // clear and create the output directory
-    if (this.mark.clearOutput && fs.existsSync(this.mark.output))
+    if (this.clearOutput && fs.existsSync(this.output))
     {
-      this.mark.log('Clearing Output:', this.mark.output);
-      fs.removeSync(this.mark.output);
+      this.mark.log('Clearing Output:', this.output);
+      fs.removeSync(this.output);
     }
 
     // create the directory
-    if (!fs.existsSync(this.mark.output)) fs.ensureDirSync(this.mark.output);
+    if (!fs.existsSync(this.output)) fs.ensureDirSync(this.output);
 
     // write and set the styles
     this.writeStyles();
@@ -197,46 +471,6 @@ export default class Generator
   }
 
   /**
-   * Cleans up generated output when pdfOnly is set
-   */
-  private async cleanup()
-  {
-    this.mark.log('Cleaning:', 'generated files');
-    // close browser
-    if (this.puppeteer)
-    {
-      await this.puppeteer.browser.close();
-      this.puppeteer = undefined;
-    }
-    // delete generated files
-    if (this.mark.options.pdf)
-    {
-      for (const file of this.generated) fs.removeSync(file);
-      if (!this.mark.options.keepAssets)
-        for (const file of this.assets) fs.removeSync(file);
-    }
-  }
-
-  /**
-   * Generates the documentation to the output folder as files
-   * @returns the path to the home page or undefined if an error occurred
-   */
-  private generateHtml():string|undefined
-  {
-    // write the html files
-    this.mark.group(colors.green('Generating:'), 'html');
-    let result = this.writeChildren(this.sitemap);
-
-    // result should be the home file path
-    if (this.mark.options.outputFormat === 'file')
-      result = path.resolve(this.mark.output, this.sitemap.home);
-
-    this.mark.groupEnd();
-    this.mark.log('Generating Finished:', result);
-    return result;
-  }
-
-  /**
    * Writes and sets the styles
    */
   private writeScripts()
@@ -244,23 +478,28 @@ export default class Generator
     // write out the sitemap
     const temp = path.resolve(this.templates, Generator.markugenFiles.js.template);
     this.script = fs.readFileSync(temp, {encoding: 'utf8'});
-    this.mark.preprocessor.vars.sitemap = this.removeInput(structuredClone(this.sitemap));
-    this.script = this.mark.preprocessor.process(this.script, temp);
-    if (!this.mark.options.embed)
+    this.preprocessor.vars.sitemap = this.removeInput(structuredClone(this.sitemap));
+    this.script = this.preprocessor.process(this.script, temp);
+    if (!this.options.embed)
     {
       const file = Generator.markugenFiles.js.out;
-      const full = path.resolve(this.mark.output, file);
+      const full = path.resolve(this.output, file);
       fs.writeFileSync(
         full, 
-        this.script + (this.mark.options.script ? this.mark.options.script : '')
+        this.script + (this.options.script ? this.options.script : '')
       );
-      this.generated.push(full);
       this.js.push(file);
-      this.js.push(...this.mark.options.js);
-      this.assets.push(...this.mark.options.js);
+      this.js.push(...this.options.js);
+      this.assets.push(...this.options.js);
       this.script = undefined;
     }
   }
+
+  /**
+   * Removes the input key from the given page
+   * @param page the page to update
+   * @returns the page with the key removed
+   */
   private removeInput(page:Page):Page
   {
     // remove the page's input
@@ -273,6 +512,7 @@ export default class Generator
     }
     return page;
   }
+
   /**
    * Writes and sets the styles
    */
@@ -281,23 +521,22 @@ export default class Generator
     // write out the styles
     const temp = path.resolve(this.templates, Generator.markugenFiles.css.template);
     this.style = fs.readFileSync(temp, {encoding: 'utf8'});
-    this.mark.preprocessor.vars.theme = {
-      light: this.mark.options.theme.light,
-      dark: this.mark.options.theme.dark
+    this.preprocessor.vars.theme = {
+      light: this.options.theme.light,
+      dark: this.options.theme.dark
     };
-    this.style = this.mark.preprocessor.process(this.style, temp);
-    if (!this.mark.options.embed)
+    this.style = this.preprocessor.process(this.style, temp);
+    if (!this.options.embed)
     {
       const file = Generator.markugenFiles.css.out;
-      const full = path.resolve(this.mark.output, file);
+      const full = path.resolve(this.output, file);
       fs.writeFileSync(
         full, 
-        this.style + (this.mark.options.style ? this.mark.options.style : '')
+        this.style + (this.options.style ? this.options.style : '')
       );
       this.css.push(file);
-      this.generated.push(full);
-      this.css.push(...this.mark.options.css);
-      this.assets.push(...this.mark.options.css);
+      this.css.push(...this.options.css);
+      this.assets.push(...this.options.css);
       this.style = undefined;
     }
   }
@@ -307,8 +546,8 @@ export default class Generator
    */
   private copyAssets()
   {
-    if (this.mark.options.assets) this.assets.push(...this.mark.options.assets);
-    if (this.mark.options.favicon) this.assets.push(this.mark.options.favicon);
+    if (this.options.assets) this.assets.push(...this.options.assets);
+    if (this.options.favicon) this.assets.push(this.options.favicon);
 
     if (this.assets.length > 0) this.mark.group(colors.green('Copying:'), 'assets');
     for(const asset of this.assets) 
@@ -316,11 +555,11 @@ export default class Generator
       // don't copy URLs
       if (URL.canParse(asset)) continue;
 
-      const file = path.resolve(this.mark.inputDir, asset);
+      const file = path.resolve(this.inputDir, asset);
       if (fs.existsSync(file))
       {
         const stat = fs.statSync(file);
-        const out = path.join(this.mark.output, stat.isFile() ? path.dirname(asset) : asset);
+        const out = path.join(this.output, stat.isFile() ? path.dirname(asset) : asset);
 
         // include directory structure with files
         this.mark.log('Copy:', file);
@@ -341,10 +580,10 @@ export default class Generator
   {
     parent.children = {};
     // handle single file
-    if (this.mark.isInputSolo)
+    if (this.isInputSolo)
     {
-      const input = this.mark.isInputFile ? this.mark.options.input : this.mark.options.outputName + '.md';
-      const entry = this.entry(this.mark.inputDir, path.basename(input), true);
+      const input = this.isInputFile ? this.options.input : this.options.outputName + '.md';
+      const entry = this.entry(this.inputDir, path.basename(input), true);
       if (entry)
       {
         this.addChild(parent, entry);
@@ -380,7 +619,7 @@ export default class Generator
     for(const file of files)
     {
       const full = path.join(dir, file.name);
-      if (this.mark.isExcluded(full)) continue;
+      if (this.isExcluded(full)) continue;
 
       // push directories for later
       if (file.isDirectory()) subs.push(file);
@@ -425,11 +664,11 @@ export default class Generator
     if (!parent.children) parent.children = {};
 
     const parts = path.parse(md.path);
-    const parentDir = path.relative(this.mark.inputDir, path.dirname(md.path));
+    const parentDir = path.relative(this.inputDir, path.dirname(md.path));
     // only add if it is not there
     if (!(md.entry in parent.children))
     {
-      const title = this.mark.options.inheritTitle ? this.sitemap.title : this.title(md.path);
+      const title = this.options.inheritTitle ? this.sitemap.title : this.title(md.path);
       const page:Page = config ? {
         title: title,
         toc: parent.toc,
@@ -441,7 +680,7 @@ export default class Generator
       };
       if (md.md)
       {
-        const html = this.mark.isInputSolo ? this.mark.options.outputName : parts.name;
+        const html = this.isInputSolo ? this.options.outputName : parts.name;
         page.input = md.md;
         page.href = path.join(parentDir, html + '.html').replace(/\\/g, '/');
       }
@@ -462,7 +701,7 @@ export default class Generator
     // check the extension
     return dot > 0 && 
       dot + 1 < file.length && 
-      this.mark.options.extensions.includes(file.slice(dot + 1));
+      this.options.extensions.includes(file.slice(dot + 1));
   }
 
   /**
@@ -474,22 +713,22 @@ export default class Generator
   private entry(dir:string, name:string, precheck?:boolean):MarkdownEntry|undefined
   {
     const test = path.join(dir, name);
-    const entry = path.relative(this.mark.inputDir, test).replace(/\\/g, '/');
+    const entry = path.relative(this.inputDir, test).replace(/\\/g, '/');
 
     // just populate if already checked
     if (precheck) return { entry: entry, path: test, md: test };
 
     // don't even bother if excluded
-    if (this.mark.isExcluded(test)) return undefined;
+    if (this.isExcluded(test)) return undefined;
 
     const isDirectory = fs.existsSync(test) && fs.lstatSync(test).isDirectory();
     // check all extensions first
-    for (const ext of this.mark.options.extensions)
+    for (const ext of this.options.extensions)
     {
       const file = `${test}.${ext}`;
       if (fs.existsSync(file)) 
       {
-        const entry = path.relative(this.mark.inputDir, file).replace(/\\/g, '/');
+        const entry = path.relative(this.inputDir, file).replace(/\\/g, '/');
         return { entry: entry, path: isDirectory ? test : file, md: file };
       }
     }
@@ -531,25 +770,18 @@ export default class Generator
    */
   private get styles()
   {
-    if (!this.mark.options.embed) return undefined;
+    if (!this.options.embed) return undefined;
     let styles = this.style ? this.style : '';
     // add string styles
-    if (this.mark.options.style) styles += '\n' + this.mark.options.style + '\n';
+    if (this.options.style) styles += '\n' + this.options.style + '\n';
     // embed styles from files
-    if (this.mark.options.css)
+    if (this.options.css)
     {
-      const files = Array.isArray(this.mark.options.css) ? this.mark.options.css : [this.mark.options.css];
-      for (const file of files)
+      for (const file of this.options.css)
       {
         if (URL.canParse(file)) continue;
-        try 
-        { 
-          styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; 
-        }
-        catch(e) 
-        { 
-          this.mark.warning(`Given css file cannot be read [${colors.red(file)}]`); 
-        }
+        try { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
+        catch(e) { this.mark.warning(`Given css file cannot be read [${colors.red(file)}]`); }
       }
     }
     return styles === '' ? undefined : styles;
@@ -560,14 +792,13 @@ export default class Generator
    */
   private get scripts()
   {
-    if (!this.mark.options.embed) return undefined;
+    if (!this.options.embed) return undefined;
     let scripts = this.script ? this.script : '';
-    if (this.mark.options.script) scripts += '\n' + this.mark.options.script + '\n';
+    if (this.options.script) scripts += '\n' + this.options.script + '\n';
     // embed js from files
-    if (this.mark.options.js)
+    if (this.options.js)
     {
-      const files = Array.isArray(this.mark.options.js) ? this.mark.options.js : [this.mark.options.js];
-      for (const file of files)
+      for (const file of this.options.js)
       {
         if (URL.canParse(file)) continue;
         try { scripts += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
@@ -589,7 +820,7 @@ export default class Generator
     if (!page.href) return undefined;
 
     let depth = '';
-    let dir = this.mark.output;
+    let dir = this.output;
     const subs = page.href.split(/\//g);
     for(let i = 0; i < subs.length - 1; i++) 
     {
@@ -599,9 +830,9 @@ export default class Generator
     }
 
     if (!page.input) return undefined;
-    const file = path.join(this.mark.output, page.href);
-    const md = this.mark.isInputString ? file : page.input;
-    const text = this.mark.isInputString ? this.mark.input : fs.readFileSync(md, {encoding: 'utf8'});
+    const file = path.join(this.output, page.href);
+    const md = this.isInputString ? file : page.input;
+    const text = this.isInputString ? this.input : fs.readFileSync(md, {encoding: 'utf8'});
     this.mark.group(colors.green('Generating:'), file);
 
     // create marked and extensions
@@ -632,8 +863,8 @@ export default class Generator
         script: this.scripts,
         css: this.css.map((value) => URL.canParse(value) ? value : depth + value),
         js: this.js.map((value) => URL.canParse(value) ? value : depth + value),
-        link: this.mark.options.favicon ? {
-          href: depth + this.mark.options.favicon, 
+        link: this.options.favicon ? {
+          href: depth + this.options.favicon, 
           rel: 'icon', 
           sizes: 'any',
           type: 'image/x-icon',
@@ -641,66 +872,13 @@ export default class Generator
       }),
     );
 
-    const html:string = marked.parse(this.mark.preprocessor.process(text, md)) as string;
+    const html:string = marked.parse(this.preprocessor.process(text, md)) as string;
     fs.writeFileSync(file, html);
     this.generated.push(file);
     this.mark.groupEnd();
 
     // return the file path or html
-    return this.mark.options.outputFormat === 'file' ? file : html;
-  }
-
-  /**
-   * Creates the pdf version of the file
-   * @param file the path to the html file or the html string
-   */
-  private async writePdf(file:string)
-  {
-    if (!this.mark.options.pdf || !this.puppeteer) return;
-      
-    const pdf = file.replace(/\.html$/, '.pdf');
-    this.mark.log('Generating PDF:', pdf);
-    
-    await this.puppeteer.page.goto(
-      url.pathToFileURL(file).toString(), 
-      { waitUntil: 'networkidle2' }
-    );
-
-    // replace all markdown relative links with the pdf equivalent
-    await this.puppeteer.page.evaluate(() =>
-    {
-      const links = document.querySelectorAll('.markugen-md-link');
-      for(const link of links)
-      {
-        // @ts-expect-error puppeteer types no work here
-        const matches = link.href.matchAll(/\.html/ig);
-        // get the last match
-        let match = undefined; for (const m of matches) match = m;
-        if (match)
-        {
-          const lastIndex = match.index;
-          const length = match[0].length;
-          // @ts-expect-error puppeteer types no work here
-          link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
-        }
-      }
-    });
-
-    // get the content box
-    const content = await this.puppeteer.page.$('#markugen-content');
-    const box = await content?.boxModel();
-    content?.dispose();
-
-    await this.puppeteer.page.pdf({ 
-      format: 'A4',
-      path: pdf, 
-      margin: {
-        left: box?.content[0].x ?? '25px',
-        right: box?.content[3].x ?? '25px',
-        bottom: box?.content[0].y ?? '25px',
-        top: box?.content[0].y ?? '25px',
-      },
-    });
+    return this.options.outputFormat === 'file' ? file : html;
   }
 
   /**
