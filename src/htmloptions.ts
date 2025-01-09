@@ -4,7 +4,7 @@ import Markugen from './markugen';
 /**
  * Generator configuration options
  */
-export interface GeneratorOptions 
+export interface HtmlOptions 
 {
   /**
    * The format of the {@link input}. If string is used for

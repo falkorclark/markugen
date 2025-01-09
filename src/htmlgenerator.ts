@@ -18,7 +18,7 @@ import { Page, PageConfig, Sitemap } from './page';
 import { defaultThemes, Themes } from './themes';
 import { Preprocessor } from './preprocessor';
 import { timeFormat } from './utils';
-import { GeneratorOptions } from './generatoroptions';
+import { HtmlOptions } from './htmloptions';
 
 export * from './themes';
 export * from './preprocessor';
@@ -31,7 +31,7 @@ interface MarkdownEntry
   md?:string,
 }
 
-export class Generator
+export class HtmlGenerator
 {
   /**
    * The name of the markugen generated files
@@ -47,7 +47,7 @@ export class Generator
   /**
    * Contains the options that were given on construction
    */
-  public readonly options:Required<GeneratorOptions>;
+  public readonly options:Required<HtmlOptions>;
   /**
    * Path to the templates
    */
@@ -102,7 +102,7 @@ export class Generator
   /**
    * Constructs a new generator with the given markugen options
    */
-  public constructor(mark:Markugen, options:GeneratorOptions)
+  public constructor(mark:Markugen, options:HtmlOptions)
   {
     this.mark = mark;
     this.options = {
@@ -162,42 +162,13 @@ export class Generator
 
     this.mark.groupEnd();
     this.mark.log('Generating Finished:', this.finish());
+
+    // output to the console if cli and output format of string
+    if (this.options.outputFormat === 'string' && result) console.log(result);
+
+    // return the result
     return this.options.outputFormat === 'string' ? result : this.generated;
   }
-
-  /** 
-   * Generates the documentation as PDFs. If the pdf option is given, this
-   * version of the {@link generate} method must be called or the PDFs will
-   * not be generated.
-   */
-  // public async generatePdfs():Promise<string|undefined>
-  // {
-  //   // generate the html first
-  //   const result = this.generateHtml();
-  //   if (!result) return undefined;
-
-  //   this.mark.group(colors.green('Generating:'), 'pdf');
-  //   // prepare the browser
-  //   this.mark.log('Browser:', this.options.browser);
-
-  //   const promises:Promise<void>[] = [];
-  //   for(const file of this.generated)
-  //   {
-  //     if (/\.html$/i.test(file))
-  //     {
-  //       promises.push(this.writePdf(file));
-  //     }
-  //   }
-  //   await Promise.all(promises);
-
-  //   // clean everything up
-  //   await this.cleanup();
-
-  //   this.mark.groupEnd();
-  //   this.mark.log('Generating Finished:', result.replace(/\.html$/i, '.pdf'));
-  //   // output elapsed time
-  //   this.finish();
-  // }
   
   /**
    * @returns true if the input given is a single file
@@ -476,13 +447,13 @@ export class Generator
   private writeScripts()
   {
     // write out the sitemap
-    const temp = path.resolve(this.templates, Generator.markugenFiles.js.template);
+    const temp = path.resolve(this.templates, HtmlGenerator.markugenFiles.js.template);
     this.script = fs.readFileSync(temp, {encoding: 'utf8'});
     this.preprocessor.vars.sitemap = this.removeInput(structuredClone(this.sitemap));
     this.script = this.preprocessor.process(this.script, temp);
     if (!this.options.embed)
     {
-      const file = Generator.markugenFiles.js.out;
+      const file = HtmlGenerator.markugenFiles.js.out;
       const full = path.resolve(this.output, file);
       fs.writeFileSync(
         full, 
@@ -519,7 +490,7 @@ export class Generator
   private writeStyles()
   {
     // write out the styles
-    const temp = path.resolve(this.templates, Generator.markugenFiles.css.template);
+    const temp = path.resolve(this.templates, HtmlGenerator.markugenFiles.css.template);
     this.style = fs.readFileSync(temp, {encoding: 'utf8'});
     this.preprocessor.vars.theme = {
       light: this.options.theme.light,
@@ -528,7 +499,7 @@ export class Generator
     this.style = this.preprocessor.process(this.style, temp);
     if (!this.options.embed)
     {
-      const file = Generator.markugenFiles.css.out;
+      const file = HtmlGenerator.markugenFiles.css.out;
       const full = path.resolve(this.output, file);
       fs.writeFileSync(
         full, 

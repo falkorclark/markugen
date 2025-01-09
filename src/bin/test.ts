@@ -1,5 +1,5 @@
 
-import Markugen, { GeneratorOptions } from '../markugen';
+import Markugen, { HtmlOptions } from '../markugen';
 import colors from 'colors';
 
 async function main()
@@ -7,7 +7,7 @@ async function main()
   let chrome = undefined;
   if (process.argv.length > 2) chrome = process.argv[2];
 
-  const options:GeneratorOptions = {
+  const options:HtmlOptions = {
     input: 'devops/tests',
     clearOutput: true,
     includeHidden: true,

@@ -3,18 +3,18 @@ import colors from 'colors';
 import path from 'node:path';
 import fs from 'fs-extra';
 import os from 'node:os';
-import { Generator } from './generator';
+import { HtmlGenerator } from './htmlgenerator';
 import { version, name, homepage } from '../package.json';
 import { MarkugenOptions } from './markugenoptions';
 import { IMarkugen } from './imarkugen';
 import { spawnSync } from 'node:child_process';
-import { GeneratorOptions } from './generatoroptions';
+import { HtmlOptions } from './htmloptions';
 import PdfGenerator from './pdfgenerator';
 
 export * from './imarkugen';
-export * from './generator';
+export * from './htmlgenerator';
 export * from './markugenoptions';
-export * from './generatoroptions';
+export * from './htmloptions';
 export * from './utils';
 
 export interface OutputLabel 
@@ -75,28 +75,29 @@ export default class Markugen
 
   /**
    * This is a synchronous version of {@link generate}. Calling this version
-   * will ignore the {@link GeneratorOptions.pdf} flag and only generate html output.
+   * will ignore the {@link HtmlOptions.pdf} flag and only generate html output.
    * See {@link generate} for more details.
    * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public generateSync(options:GeneratorOptions):string|string[]|undefined
+  public generateSync(options:HtmlOptions):string|string[]|undefined
   {
-    return new Generator(this, options).generate();
+    return this.generator(options).generate();
   }
 
   /**
    * Generates the documentation. This method can be async or synchronous and
-   * the type is dependent on the {@link GeneratorOptions.pdf} flag. If the
+   * the type is dependent on the {@link HtmlOptions.pdf} flag. If the
    * {@link Options.pdf} flag is true, the method will be async, else it will 
    * be synchronous.
    * @returns the path to the home page, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public async generate(options:GeneratorOptions):Promise<string|string[]|undefined>
+  public async generate(options:HtmlOptions):Promise<string|string[]|undefined>
   {
-    const generated = new Generator(this, options).generate();
-    if (options.pdf && generated)
+    const gen = this.generator(options);
+    const generated = gen.generate();
+    if (gen.options.pdf && generated)
     {
       return await new PdfGenerator(this).generate({
         input: generated,
@@ -104,6 +105,24 @@ export default class Markugen
       });
     }
     return generated;
+  }
+
+  /**
+   * Creates and returns the generator along with updates to the args 
+   * based on user input.
+   */
+  private generator(options:HtmlOptions)
+  {
+    // unescape newlines provided in the string
+    if (options.format === 'string' && this.options.cli) 
+      options.input = options.input.replace(/\\n/g, '\n');
+
+    const gen = new HtmlGenerator(this, options);
+    // quiet mode if string output
+    if (gen.options.outputFormat === 'string' && !gen.options.pdf) 
+      this.options.quiet = true;
+
+    return gen;
   }
 
   /**

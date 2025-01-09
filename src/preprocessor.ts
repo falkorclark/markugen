@@ -1,5 +1,5 @@
 
-import { Generator } from './generator';
+import { HtmlGenerator } from './htmlgenerator';
 import fs from 'fs-extra';
 import path from 'node:path';
 import os from 'node:os';
@@ -19,7 +19,7 @@ export class Preprocessor
   /**
    * Instance of the generator
    */
-  public readonly generator:Generator;
+  public readonly generator:HtmlGenerator;
   /**
    * Variables to define before template expansion
    */
@@ -28,7 +28,7 @@ export class Preprocessor
   /**
    * Constructs a new preprocessor with the given variables
    */
-  public constructor(generator:Generator)
+  public constructor(generator:HtmlGenerator)
   {
     this.generator = generator;
     this.vars = structuredClone(generator.options.vars);
