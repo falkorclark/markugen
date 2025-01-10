@@ -1,6 +1,6 @@
 
 /**
- * Generator configuration options
+ * Markugen configuration options
  */
 export interface MarkugenOptions 
 {

@@ -14,7 +14,7 @@ function main()
 function docs()
 {
   const mark = new Markugen();
-  mark.generateSync({
+  mark.generateHtml({
     input: 'markdown',
     output: 'docs',
     assets: ['examples'],

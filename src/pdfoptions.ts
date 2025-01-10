@@ -1,6 +1,6 @@
+import { GeneratorOptions } from './generatoroptions';
 
-
-export default interface PdfOptions
+export interface PdfOptions extends GeneratorOptions
 {
   /**
    * Specifies the input directory to search for html files in or a list of

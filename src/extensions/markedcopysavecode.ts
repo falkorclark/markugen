@@ -1,6 +1,5 @@
 import { MarkedExtension, Tokens } from 'marked';
-import { randomUUID } from 'node:crypto';
-import Markugen from '../markugen';
+import HtmlGenerator from '../htmlgenerator';
 import path from 'node:path';
 
 /**
@@ -23,12 +22,12 @@ function code(token:Tokens.Code):string|false
   if (!token.lang) token.lang = 'txt';
 
   let file = undefined;
-  const match = token.raw.match(Markugen.cmdRegex);
+  const match = token.raw.match(HtmlGenerator.cmdRegex);
   if (match && match.groups && match.groups.cmd && match.groups.args && match.groups.cmd === 'import')
     file = path.basename(match.groups.args);
  
   // create an id
-  const id = `copy-save-${Markugen.globalId++}`;
+  const id = `copy-save-${HtmlGenerator.globalId++}`;
   return `<div class="markugen-code">
   <div class="markugen-code-toolbar">
     <div class="markugen-code-title">${file ? file : '.' + token.lang}</div>

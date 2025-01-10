@@ -3,26 +3,18 @@ import colors from 'colors';
 import path from 'node:path';
 import fs from 'fs-extra';
 import os from 'node:os';
-import { HtmlGenerator } from './htmlgenerator';
 import { version, name, homepage } from '../package.json';
 import { MarkugenOptions } from './markugenoptions';
 import { IMarkugen } from './imarkugen';
 import { spawnSync } from 'node:child_process';
-import { HtmlOptions } from './htmloptions';
-import PdfGenerator from './pdfgenerator';
+import PdfGenerator, { PdfOptions } from './pdfgenerator';
+import HtmlGenerator, { HtmlOptions } from './htmlgenerator';
 
 export * from './imarkugen';
 export * from './htmlgenerator';
+export * from './pdfgenerator';
 export * from './markugenoptions';
-export * from './htmloptions';
 export * from './utils';
-
-export interface OutputLabel 
-{
-  label: string,
-  color?: colors.Color,
-  ignoreQuiet?: boolean,
-}
 
 export default class Markugen
 {
@@ -38,14 +30,6 @@ export default class Markugen
    * The home page of Markugen
    */
   public static readonly homepage:string = homepage;
-  /**
-   * Regular expression used for Markugen commands
-   */
-  public static readonly cmdRegex:RegExp = /^\s*(?<esc>[\\]?)markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
-  /**
-   * Used to generate ids the same each time
-   */
-  public static globalId:number = 1;
 
   /**
    * Root path to the Markugen package
@@ -80,22 +64,29 @@ export default class Markugen
    * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public generateSync(options:HtmlOptions):string|string[]|undefined
+  public generateHtml(options:HtmlOptions):string|string[]|undefined
   {
-    return this.generator(options).generate();
+    return this.htmlGenerator(options).generate();
+  }
+  /**
+   * Generates PDF documents for the given {@link PdfOptions options}.
+   * @param options the {@link PdfOptions} for generation
+   * @returns a list of files that were generated
+   */
+  public async generatePdf(options:PdfOptions):Promise<string[]>
+  {
+    return await new PdfGenerator(this).generate(options);
   }
 
   /**
-   * Generates the documentation. This method can be async or synchronous and
-   * the type is dependent on the {@link HtmlOptions.pdf} flag. If the
-   * {@link Options.pdf} flag is true, the method will be async, else it will 
-   * be synchronous.
-   * @returns the path to the home page, the html if format === 'string', or 
+   * Generates the HTML documentation and PDF files if {@link HtmlOptions.pdf}
+   * is true.
+   * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
   public async generate(options:HtmlOptions):Promise<string|string[]|undefined>
   {
-    const gen = this.generator(options);
+    const gen = this.htmlGenerator(options);
     const generated = gen.generate();
     if (gen.options.pdf && generated)
     {
@@ -108,10 +99,10 @@ export default class Markugen
   }
 
   /**
-   * Creates and returns the generator along with updates to the args 
+   * Creates and returns an {@link HtmlGenerator} along with updates to the args 
    * based on user input.
    */
-  private generator(options:HtmlOptions)
+  private htmlGenerator(options:HtmlOptions)
   {
     // unescape newlines provided in the string
     if (options.format === 'string' && this.options.cli) 
@@ -124,7 +115,7 @@ export default class Markugen
 
     return gen;
   }
-
+  
   /**
    * Outputs the given error message
    * @param e the error to log
@@ -132,44 +123,8 @@ export default class Markugen
   public error(e:Error)
   {
     const msg = this.options.debug && e.stack ? 
-      colors.red(e.stack) : 
-      `${colors.red('Error:')} ${e.message}`;
+      colors.red(e.stack) : `${colors.red('Error:')} ${e.message}`;
     console.error(msg);
-  }
-
-  /**
-   * Starts a console group
-   */
-  public group(...args:any[]) 
-  { 
-    if(!this.options.quiet) console.group(...args); 
-  }
-  /**
-   * Ends a console group
-   */
-  public groupEnd() { if(!this.options.quiet) console.groupEnd(); }
-
-  /**
-   * Use in place of console.log so the app can handle coloring
-   * and any cli options that were given
-   */
-  public log(label:OutputLabel|string, ...args:any[])
-  {
-    const ol = typeof label === 'string' ? {label: label} : label;
-    if (!this.options.quiet && ol.ignoreQuiet !== true) 
-    {
-      const color = ol.color ? ol.color : colors.green;
-      if (ol.label) console.log(color(ol.label), ...args);
-      else console.log(...args);
-    }
-  }
-  /**
-   * Use in place of console.log so the app can handle coloring
-   * and any cli options that were given
-   */
-  public warning(...args:any[])
-  {
-    this.log({ label: 'Warning:', color: colors.yellow }, ...args);
   }
 
   /**

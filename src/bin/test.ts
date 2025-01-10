@@ -22,7 +22,7 @@ async function main()
 
     // html output test
     options.output = 'tests/html';
-    mark.generateSync(options);
+    mark.generateHtml(options);
   
     // pdf output test
     options.output = 'tests/pdf';
@@ -34,7 +34,7 @@ async function main()
     options.output = 'tests/docs';
     options.assets = ['examples'];
     options.extensions = [];
-    mark.generateSync(options);
+    mark.generateHtml(options);
   }
   catch(e:any) 
   { 

@@ -1,27 +1,28 @@
 import path from 'node:path';
 import fs from 'fs-extra';
-import PdfOptions from './pdfoptions';
+import { PdfOptions } from './pdfoptions';
 import Markugen from './markugen';
 import puppeteer from 'puppeteer-core';
 import url from 'url';
 import colors from 'colors';
 import { timeFormat } from './utils';
+import Generator, { GeneratorOptions } from './generator';
+
+export * from './pdfoptions';
 
 /**
  * Generator for HTML to PDF file generation
  */
-export default class PdfGenerator
+export default class PdfGenerator extends Generator
 {
-  /**
-   * Instance of Markugen
-   */   
-  public readonly mark:Markugen;
-
   /**
    * Constructs a new generator
    * @param mark the instance of {@link Markugen}
    */
-  public constructor(mark:Markugen) { this.mark = mark; }
+  public constructor(mark:Markugen, options?:GeneratorOptions) 
+  { 
+    super(mark, options); 
+  }
 
   /**
    * Generates the PDFs for the given {@link PdfOptions options}
@@ -35,6 +36,8 @@ export default class PdfGenerator
 
     // validate before generation
     const opts:Required<PdfOptions> = {
+      color: this.options.color,
+      quiet: this.options.quiet,
       input: options.input,
       browser: options.browser ?? Markugen.findChrome() ?? '',
       remove: options.remove ?? false,
@@ -42,9 +45,9 @@ export default class PdfGenerator
     };
     const files = this.validate(opts);
 
-    this.mark.group(colors.green('Generating:'), 'pdf');
+    this.group(colors.green('Generating:'), 'pdf');
     // prepare the browser
-    this.mark.log('Browser:', opts.browser);
+    this.log('Browser:', opts.browser);
 
     const promises:Promise<string>[] = [];
     // loop over and write the pdf for each file
@@ -59,8 +62,8 @@ export default class PdfGenerator
     const end = process.hrtime(start);
     const ms = end[0] * 1000 + end[1] / 1000000;
     const elapsed = timeFormat(ms, {fixed: 2});
-    this.mark.groupEnd();
-    this.mark.log('Generating Finished:', elapsed);
+    this.groupEnd();
+    this.log('Generating Finished:', elapsed);
     return generated;
   }
 
@@ -72,7 +75,7 @@ export default class PdfGenerator
   {
     const parts = path.parse(file);
     const pdf = path.join(parts.dir, parts.name + '.pdf');
-    this.mark.log('Generating PDF:', pdf);
+    this.log('Generating PDF:', pdf);
 
     const browser = await puppeteer.launch({executablePath: options.browser});
     const page = await browser.newPage();

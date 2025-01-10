@@ -19,10 +19,12 @@ import { defaultThemes, Themes } from './themes';
 import { Preprocessor } from './preprocessor';
 import { timeFormat } from './utils';
 import { HtmlOptions } from './htmloptions';
+import Generator from './generator';
 
 export * from './themes';
 export * from './preprocessor';
 export * from './page';
+export * from './htmloptions';
 
 interface MarkdownEntry 
 {
@@ -31,7 +33,7 @@ interface MarkdownEntry
   md?:string,
 }
 
-export class HtmlGenerator
+export default class HtmlGenerator extends Generator
 {
   /**
    * The name of the markugen generated files
@@ -41,9 +43,14 @@ export class HtmlGenerator
     css: { out: 'markugen.css', template: 'markugen.template.css' },
   };
   /**
-   * Instance of Markugen
+   * Regular expression used for Markugen commands
    */
-  public readonly mark:Markugen;
+  public static readonly cmdRegex:RegExp = /^\s*(?<esc>[\\]?)markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
+  /**
+   * Used to generate ids the same each time
+   */
+  public static globalId:number = 1;
+
   /**
    * Contains the options that were given on construction
    */
@@ -104,8 +111,10 @@ export class HtmlGenerator
    */
   public constructor(mark:Markugen, options:HtmlOptions)
   {
-    this.mark = mark;
+    super(mark, options);
     this.options = {
+      color: options.color ?? true,
+      quiet: options.quiet ?? false,
       input: path.resolve(options.input),
       format: options.format ?? 'file',
       extensions: options.extensions ?? ['md'],
@@ -153,15 +162,15 @@ export class HtmlGenerator
     // prepares for generation
     this.prepare();
     // write the html files
-    this.mark.group(colors.green('Generating:'), 'html');
+    this.group(colors.green('Generating:'), 'html');
     let result = this.writeChildren(this.sitemap);
 
     // result should be the home file path
     if (this.options.outputFormat === 'file')
       result = path.resolve(this.output, this.sitemap.home);
 
-    this.mark.groupEnd();
-    this.mark.log('Generating Finished:', this.finish());
+    this.groupEnd();
+    this.log('Generating Finished:', this.finish());
 
     // output to the console if cli and output format of string
     if (this.options.outputFormat === 'string' && result) console.log(result);
@@ -247,7 +256,7 @@ export class HtmlGenerator
     // pdf implies output format of file
     if (this.options.pdf && this.options.outputFormat === 'string')
     {
-      this.mark.warning(`Output format changing to ${colors.green('file')} for PDF generation`);
+      this.warning(`Output format changing to ${colors.green('file')} for PDF generation`);
       this.options.outputFormat = 'file';
     }
 
@@ -288,7 +297,7 @@ export class HtmlGenerator
       ];
       if (nono.includes(this.output))
       {
-        this.mark.warning(`Output set to protected directory [${colors.red(this.output)}], skipping clear output`);
+        this.warning(`Output set to protected directory [${colors.red(this.output)}], skipping clear output`);
         this.options.clearOutput = false;
       }
     }
@@ -324,7 +333,7 @@ export class HtmlGenerator
       if (file === '') return false;
       if (!this.isRelative(file))
       {
-        this.mark.warning(`Given file is not relative to input directory [${colors.red(file)}]`);
+        this.warning(`Given file is not relative to input directory [${colors.red(file)}]`);
         return false;
       }
       return true;
@@ -382,7 +391,7 @@ export class HtmlGenerator
   {
     if (this.options.favicon && !this.isRelative(this.options.favicon))
     {
-      this.mark.warning(
+      this.warning(
         `Given favicon is not relative to the input directory [${colors.red(this.options.favicon)}]`
       );
       this.options.favicon = '';
@@ -426,7 +435,7 @@ export class HtmlGenerator
     // clear and create the output directory
     if (this.clearOutput && fs.existsSync(this.output))
     {
-      this.mark.log('Clearing Output:', this.output);
+      this.log('Clearing Output:', this.output);
       fs.removeSync(this.output);
     }
 
@@ -520,7 +529,7 @@ export class HtmlGenerator
     if (this.options.assets) this.assets.push(...this.options.assets);
     if (this.options.favicon) this.assets.push(this.options.favicon);
 
-    if (this.assets.length > 0) this.mark.group(colors.green('Copying:'), 'assets');
+    if (this.assets.length > 0) this.group(colors.green('Copying:'), 'assets');
     for(const asset of this.assets) 
     {
       // don't copy URLs
@@ -533,13 +542,13 @@ export class HtmlGenerator
         const out = path.join(this.output, stat.isFile() ? path.dirname(asset) : asset);
 
         // include directory structure with files
-        this.mark.log('Copy:', file);
+        this.log('Copy:', file);
         fs.ensureDirSync(out);
         fs.copySync(file, out);
       }
-      else this.mark.warning(`Given asset does not exist [${colors.red(file)}]`);
+      else this.warning(`Given asset does not exist [${colors.red(file)}]`);
     }
-    if (this.assets.length > 0) this.mark.groupEnd();
+    if (this.assets.length > 0) this.groupEnd();
   }
 
   /**
@@ -569,10 +578,10 @@ export class HtmlGenerator
     if (fs.existsSync(mfile))
     {
       try { mark = fs.readJsonSync(mfile); }
-      catch(e:any) { this.mark.warning(`${e.message} [${mfile}]`); }
+      catch(e:any) { this.warning(`${e.message} [${mfile}]`); }
       if (!Array.isArray(mark))
       {
-        this.mark.warning(`Configuration must be an array [${colors.red(mfile)}]`);
+        this.warning(`Configuration must be an array [${colors.red(mfile)}]`);
         mark = [];
       }
     }
@@ -580,7 +589,7 @@ export class HtmlGenerator
     for(const child of mark)
     {
       const entry = this.entry(dir, child.name);
-      if (!entry) this.mark.warning(`Configuration [${colors.red(child.name)}] does not exist [${colors.red(mfile)}]`);
+      if (!entry) this.warning(`Configuration [${colors.red(child.name)}] does not exist [${colors.red(mfile)}]`);
       else this.addChild(parent, entry, child);
     }
 
@@ -752,7 +761,7 @@ export class HtmlGenerator
       {
         if (URL.canParse(file)) continue;
         try { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
-        catch(e) { this.mark.warning(`Given css file cannot be read [${colors.red(file)}]`); }
+        catch(e) { this.warning(`Given css file cannot be read [${colors.red(file)}]`); }
       }
     }
     return styles === '' ? undefined : styles;
@@ -773,7 +782,7 @@ export class HtmlGenerator
       {
         if (URL.canParse(file)) continue;
         try { scripts += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
-        catch(e) { this.mark.warning(`Given js file cannot be read [${colors.red(file)}]`); }
+        catch(e) { this.warning(`Given js file cannot be read [${colors.red(file)}]`); }
       }
     }
     return scripts === '' ? undefined : scripts;
@@ -804,7 +813,7 @@ export class HtmlGenerator
     const file = path.join(this.output, page.href);
     const md = this.isInputString ? file : page.input;
     const text = this.isInputString ? this.input : fs.readFileSync(md, {encoding: 'utf8'});
-    this.mark.group(colors.green('Generating:'), file);
+    this.group(colors.green('Generating:'), file);
 
     // create marked and extensions
     const marked = new Marked(
@@ -825,7 +834,7 @@ export class HtmlGenerator
       markedCopySaveCode(),
       markedCommands({
         file: md,
-        markugen: this.mark,
+        generator: this,
       }),
       markedLinks(),
       markedDocument({
@@ -846,7 +855,7 @@ export class HtmlGenerator
     const html:string = marked.parse(this.preprocessor.process(text, md)) as string;
     fs.writeFileSync(file, html);
     this.generated.push(file);
-    this.mark.groupEnd();
+    this.groupEnd();
 
     // return the file path or html
     return this.options.outputFormat === 'file' ? file : html;

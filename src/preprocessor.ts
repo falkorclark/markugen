@@ -1,10 +1,10 @@
 
-import { HtmlGenerator } from './htmlgenerator';
 import fs from 'fs-extra';
 import path from 'node:path';
 import os from 'node:os';
 import colors from 'colors';
 import Markugen from './markugen';
+import HtmlGenerator from './htmlgenerator';
 
 export class Preprocessor
 {
@@ -100,7 +100,7 @@ export class Preprocessor
     }
     catch(e:any)
     {
-      this.generator.mark.warning(
+      this.generator.warning(
         `Preprocesser failed when expanding ${colors.yellow(`{{${filtered}}}`)} ` +
         colors.red(`[${e.message}` + (file ? ` in ${file}]` : ']'))
       );
