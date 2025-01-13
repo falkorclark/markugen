@@ -111,6 +111,7 @@ export default class HtmlGenerator extends Generator
       output: path.resolve(options.output ?? './output'),
       outputName: options.outputName ?? '',
       pdf: options.pdf ?? false,
+      pdfOnly: options.pdfOnly ?? false,
       browser: options.browser ?? Markugen.findChrome() ?? '',
       exclude: options.exclude ?? [],
       title: options.title ?? 'Markugen v' + Markugen.version,
@@ -170,6 +171,24 @@ export default class HtmlGenerator extends Generator
 
     // return the result
     return this.options.outputFormat === 'string' ? result : this.generated;
+  }
+
+  /**
+   * Cleans up the generated files and clears assets based on the last run
+   */
+  public removeGenerated()
+  {
+    let full = path.resolve(this.output, HtmlGenerator.markugenFiles.js.out);
+    if (fs.existsSync(full)) fs.removeSync(full);
+    full = path.resolve(this.output, HtmlGenerator.markugenFiles.css.out);
+    if (fs.existsSync(full)) fs.removeSync(full);
+    // clear the assets
+    if (!this.options.keepAssets)
+    {
+      for (const f of this.assets)
+        if (fs.existsSync(f))
+          fs.removeSync(f);
+    }
   }
   
   /**
@@ -245,6 +264,9 @@ export default class HtmlGenerator extends Generator
   {
     // must have at least one extension
     if (this.options.extensions.length < 1) this.options.extensions.push('md');
+
+    // pdfOnly implies pdf
+    if (this.options.pdfOnly) this.options.pdf = true;
 
     // pdf implies output format of file
     if (this.options.pdf && this.options.outputFormat === 'string')

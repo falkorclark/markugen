@@ -55,6 +55,12 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         type: 'boolean',
         default: false,
       },
+      'pdf-only': {
+        alias: ['po'],
+        describe: 'implies --pdf and removes all html generated files, leaving only the PDFs',
+        type: 'boolean',
+        default: false,
+      },
       browser: {
         alias: ['b'],
         describe: 'the path to the Chrome or Firefox executable. This is only required ' +

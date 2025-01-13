@@ -34,6 +34,7 @@ export default class PdfGenerator extends Generator
       browser: options.browser ?? Markugen.findChrome() ?? '',
       remove: options.remove ?? false,
       extensions: options.extensions ?? ['html'],
+      links: options.links ?? true,
     };
   }
 
@@ -82,7 +83,7 @@ export default class PdfGenerator extends Generator
     );
 
     // replace all markdown relative links with the pdf equivalent
-    await page.evaluate(() =>
+    if (this.options.links) await page.evaluate(() =>
     {
       const links = document.querySelectorAll('.markugen-md-link');
       for(const link of links)

@@ -49,6 +49,11 @@ export interface HtmlOptions
    */
   pdf?:boolean,
   /**
+   * Implies {@link pdf} and removes all generated HTML files, leaving only
+   * the PDFs.
+   */
+  pdfOnly?:boolean,
+  /**
    * The path to the Chrome or Firefox executable. This is only required if {@link pdf}
    * is true and Markugen is unable to locate the executable.
    */
