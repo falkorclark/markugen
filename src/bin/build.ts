@@ -14,7 +14,7 @@ function main()
 function docs()
 {
   const mark = new Markugen();
-  mark.generateHtml({
+  mark.mdtohtml({
     input: 'markdown',
     output: 'docs',
     assets: ['examples'],

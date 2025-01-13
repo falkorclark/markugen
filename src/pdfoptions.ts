@@ -1,6 +1,5 @@
-import { GeneratorOptions } from './generatoroptions';
 
-export interface PdfOptions extends GeneratorOptions
+export interface PdfOptions
 {
   /**
    * Specifies the input directory to search for html files in or a list of
@@ -13,7 +12,8 @@ export interface PdfOptions extends GeneratorOptions
    */
   browser?:string,
   /**
-   * If true, the html files will be removed after the PDF files are generated.
+   * If true, the html files will be removed after the PDF 
+   * files are generated. [default: false]
    */
   remove?:boolean,
   /**

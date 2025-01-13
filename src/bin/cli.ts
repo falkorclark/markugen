@@ -3,7 +3,8 @@
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { name } from '../../package.json';
-import { HtmlCommand } from '../commands/htmlcommand';
+import { MdToHtml } from '../commands/mdtohtml';
+import { HtmlToPdf } from '../commands/htmltopdf';
 
 // Handle startup
 async function main() 
@@ -17,7 +18,8 @@ async function main()
     .showHelpOnFail(false)
     .alias(['h'], 'help')
     .help('h')
-    .command(new HtmlCommand)
+    .command(new MdToHtml)
+    .command(new HtmlToPdf)
     .scriptName(name)
     .parse();
 }

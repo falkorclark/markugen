@@ -1,14 +1,14 @@
 
 import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
-import { version, description } from '../../package.json';
+import { version } from '../../package.json';
 import Markugen, { MarkugenOptions, HtmlOptions } from '../markugen';
 
 type Options = MarkugenOptions & HtmlOptions;
 
-export class HtmlCommand<U extends Options> implements CommandModule<object, U> 
+export class MdToHtml<U extends Options> implements CommandModule<object, U> 
 {
-  public command = ['$0', 'html'];
-  public describe = description;
+  public command = ['$0', 'html', 'mdtohtml'];
+  public describe = 'Markdown to HTML and/or PDF file generation';
 
   public builder(args:Argv): Argv<U> 
   {
@@ -161,10 +161,12 @@ export class HtmlCommand<U extends Options> implements CommandModule<object, U>
         alias: ['q'],
         describe: 'if given, no output will be displayed',
         type: 'boolean',
+        default: false,
       },
       debug: {
         describe: 'turns on debugging',
         type: 'boolean',
+        default: false,
       },
     });
     return args as unknown as Argv<U>;
@@ -176,8 +178,8 @@ export class HtmlCommand<U extends Options> implements CommandModule<object, U>
     let mark = undefined;
     try 
     {
-      mark = new Markugen({...args, cli: true});
-      await mark.generate(args);
+      mark = new Markugen({ cli: true });
+      await mark.generate({ ...args, cli: true });
     }
     catch (e:any)
     { 

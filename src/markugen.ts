@@ -9,12 +9,20 @@ import { IMarkugen } from './imarkugen';
 import { spawnSync } from 'node:child_process';
 import PdfGenerator, { PdfOptions } from './pdfgenerator';
 import HtmlGenerator, { HtmlOptions } from './htmlgenerator';
+import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
 
 export * from './imarkugen';
 export * from './htmlgenerator';
 export * from './pdfgenerator';
 export * from './markugenoptions';
 export * from './utils';
+
+export interface OutputLabel 
+{
+  label: string,
+  color?: colors.Color,
+  ignoreQuiet?: boolean,
+}
 
 export default class Markugen
 {
@@ -38,7 +46,12 @@ export default class Markugen
   /**
    * Set to true if this is being ran from the cli
    */
-  public readonly options:Required<MarkugenOptions>;
+  private _options:Required<MarkugenOptions> = {
+    color: true,
+    quiet: false,
+    debug: false,
+    cli: false,
+  };
 
   /**
    * Constructs a new instance with the given {@link options}.
@@ -46,12 +59,22 @@ export default class Markugen
   public constructor(options?:MarkugenOptions)
   {
     this.root = path.dirname(__dirname);
-    this.options = {
-      color: options?.color ?? true,
-      quiet: options?.quiet ?? false,
-      debug: options?.debug ?? false,
-      cli: options?.cli ?? false,
-    };
+    if (options) this.options = options;
+  }
+
+  /**
+   * @returns the current configuration options
+   */
+  public get options() { return this._options; }
+  /**
+   * Sets the configuration options
+   */
+  public set options(options:MarkugenOptions)
+  {
+    this._options.color = options.color ?? this._options.color;
+    this._options.quiet = options.quiet ?? this._options.quiet;
+    this._options.debug = options.debug ?? this._options.debug;
+    this._options.cli = options.cli ?? this._options.cli;
     // enable/disable console colors
     if (this.options.color) colors.enable();
     else colors.disable();
@@ -64,18 +87,18 @@ export default class Markugen
    * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public generateHtml(options:HtmlOptions):string|string[]|undefined
+  public mdtohtml(options:HtmlOptions & MarkugenOptions):string|string[]|undefined
   {
-    return this.htmlGenerator(options).generate();
+    return new HtmlGenerator(this, options).generate();
   }
   /**
    * Generates PDF documents for the given {@link PdfOptions options}.
    * @param options the {@link PdfOptions} for generation
    * @returns a list of files that were generated
    */
-  public async generatePdf(options:PdfOptions):Promise<string[]>
+  public async htmltopdf(options:PdfOptions & MarkugenOptions):Promise<string[]>
   {
-    return await new PdfGenerator(this).generate(options);
+    return await new PdfGenerator(this, options).generate();
   }
 
   /**
@@ -84,38 +107,54 @@ export default class Markugen
    * @returns the paths to all generated pages, the html if format === 'string', or 
    * undefined if an error occurred
    */
-  public async generate(options:HtmlOptions):Promise<string|string[]|undefined>
+  public async generate(options:HtmlOptions & MarkugenOptions):Promise<string|string[]|undefined>
   {
-    const gen = this.htmlGenerator(options);
+    const gen = new HtmlGenerator(this, options);
     const generated = gen.generate();
     if (gen.options.pdf && generated)
     {
-      return await new PdfGenerator(this).generate({
+      return await new PdfGenerator(this, {
         input: generated,
         remove: true,
-      });
+      }).generate();
     }
     return generated;
   }
-
-  /**
-   * Creates and returns an {@link HtmlGenerator} along with updates to the args 
-   * based on user input.
-   */
-  private htmlGenerator(options:HtmlOptions)
-  {
-    // unescape newlines provided in the string
-    if (options.format === 'string' && this.options.cli) 
-      options.input = options.input.replace(/\\n/g, '\n');
-
-    const gen = new HtmlGenerator(this, options);
-    // quiet mode if string output
-    if (gen.options.outputFormat === 'string' && !gen.options.pdf) 
-      this.options.quiet = true;
-
-    return gen;
-  }
   
+  /**
+   * Starts a console group
+   */
+  public group(...args:any[]) 
+  { 
+    if(!this.options.quiet) console.group(...args); 
+  }
+  /**
+   * Ends a console group
+   */
+  public groupEnd() { if(!this.options.quiet) console.groupEnd(); }
+  
+  /**
+   * Use in place of console.log so the app can handle coloring
+   * and any cli options that were given
+   */
+  public log(label:OutputLabel|string, ...args:any[])
+  {
+    const ol = typeof label === 'string' ? {label: label} : label;
+    if (!this.options.quiet && ol.ignoreQuiet !== true) 
+    {
+      const color = ol.color ? ol.color : colors.green;
+      if (ol.label) console.log(color(ol.label), ...args);
+      else console.log(...args);
+    }
+  }
+  /**
+   * Use in place of console.log so the app can handle coloring
+   * and any cli options that were given
+   */
+  public warning(...args:any[])
+  {
+    this.log({ label: 'Warning:', color: colors.yellow }, ...args);
+  }
   /**
    * Outputs the given error message
    * @param e the error to log

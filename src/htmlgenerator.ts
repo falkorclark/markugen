@@ -2,7 +2,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import colors from 'colors';
-import Markugen from './markugen';
+import Markugen, { MarkugenOptions } from './markugen';
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
 import { createDirectives, presetDirectiveConfigs } from 'marked-directive';
@@ -17,7 +17,6 @@ import markedCopySaveCode from './extensions/markedcopysavecode';
 import { Page, PageConfig, Sitemap } from './page';
 import { defaultThemes, Themes } from './themes';
 import { Preprocessor } from './preprocessor';
-import { timeFormat } from './utils';
 import { HtmlOptions } from './htmloptions';
 import Generator from './generator';
 
@@ -97,24 +96,14 @@ export default class HtmlGenerator extends Generator
    * The preprocessor to use for template expansion
    */
   private preprocessor:Preprocessor;
-  /**
-   * The generate start time for recording elapsed time
-   */
-  private startTime:[number,number]|undefined;
-  /**
-   * Used internally to prevent multiple async calls to {@link generate}
-   */
-  private isActive:boolean = false;
 
   /**
    * Constructs a new generator with the given markugen options
    */
-  public constructor(mark:Markugen, options:HtmlOptions)
+  public constructor(mark:Markugen, options:HtmlOptions & MarkugenOptions)
   {
     super(mark, options);
     this.options = {
-      color: options.color ?? true,
-      quiet: options.quiet ?? false,
       input: path.resolve(options.input),
       format: options.format ?? 'file',
       extensions: options.extensions ?? ['md'],
@@ -143,6 +132,11 @@ export default class HtmlGenerator extends Generator
       includeHidden: options.includeHidden ?? false,
       clearOutput: options.clearOutput ?? false,
     };
+    
+    // unescape newlines provided in the string
+    if (options.format === 'string' && options.cli) 
+      this.options.input = options.input.replace(/\\n/g, '\n');
+
     this.templates = path.resolve(mark.root, 'templates');
     if (!fs.existsSync(this.templates)) 
       throw Error(`Unable to locate templates directory [${this.templates}]`);
@@ -159,18 +153,17 @@ export default class HtmlGenerator extends Generator
    */
   public generate():string|string[]|undefined
   {
+    this.start();
+
     // prepares for generation
     this.prepare();
-    // write the html files
-    this.group(colors.green('Generating:'), 'html');
     let result = this.writeChildren(this.sitemap);
 
     // result should be the home file path
     if (this.options.outputFormat === 'file')
       result = path.resolve(this.output, this.sitemap.home);
 
-    this.groupEnd();
-    this.log('Generating Finished:', this.finish());
+    this.finish();
 
     // output to the console if cli and output format of string
     if (this.options.outputFormat === 'string' && result) console.log(result);
@@ -248,7 +241,7 @@ export default class HtmlGenerator extends Generator
   /**
    * Validates the options and makes changes where necessary
    */
-  private validate()
+  protected validate()
   {
     // must have at least one extension
     if (this.options.extensions.length < 1) this.options.extensions.push('md');
@@ -307,19 +300,12 @@ export default class HtmlGenerator extends Generator
     this.checkCss();
     this.checkJs();
     this.checkExcluded();
+
+    // quiet mode if string output
+    if (this.options.outputFormat === 'string' && !this.options.pdf) 
+      this.mark.options = {...this.mark.options, quiet: true };
   }
 
-  /**
-   * Computes the elapsed time and finishes everything
-   */
-  private finish():string
-  {
-    const end = process.hrtime(this.startTime);
-    const ms = end[0] * 1000 + end[1] / 1000000;
-    const elapsed = timeFormat(ms, {fixed: 2});
-    this.isActive = false;
-    return elapsed;
-  }
   /**
    * Checks that the files are relative to the input directory and filters
    * out the ones that are not. Also resolves each path.
@@ -403,9 +389,6 @@ export default class HtmlGenerator extends Generator
    */
   private prepare()
   {
-    if (this.isActive) throw new Error('Generator already active, cannot call generate while active');
-    this.isActive = true;
-    this.startTime = process.hrtime();
     this.sitemap.title = this.options.title;
     this.sitemap.toc = this.options.toc;
     this.sitemap.home = this.options.home;

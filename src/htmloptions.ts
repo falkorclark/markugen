@@ -1,11 +1,10 @@
 import { Theme, Themes } from './themes';
 import Markugen from './markugen';
-import { GeneratorOptions } from './generatoroptions';
 
 /**
  * Generator configuration options
  */
-export interface HtmlOptions extends GeneratorOptions
+export interface HtmlOptions
 {
   /**
    * The format of the {@link input}. If string is used for

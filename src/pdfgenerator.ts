@@ -1,12 +1,10 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import { PdfOptions } from './pdfoptions';
-import Markugen from './markugen';
+import Markugen, { MarkugenOptions } from './markugen';
 import puppeteer from 'puppeteer-core';
 import url from 'url';
-import colors from 'colors';
-import { timeFormat } from './utils';
-import Generator, { GeneratorOptions } from './generator';
+import Generator from './generator';
 
 export * from './pdfoptions';
 
@@ -16,12 +14,27 @@ export * from './pdfoptions';
 export default class PdfGenerator extends Generator
 {
   /**
+   * The options to use in generate
+   */
+  public readonly options:Required<PdfOptions>;
+  /**
+   * The list of files to convert
+   */
+  private readonly files:string[] = [];
+
+  /**
    * Constructs a new generator
    * @param mark the instance of {@link Markugen}
    */
-  public constructor(mark:Markugen, options?:GeneratorOptions) 
+  public constructor(mark:Markugen, options:PdfOptions & MarkugenOptions) 
   { 
     super(mark, options); 
+    this.options = {
+      input: options.input,
+      browser: options.browser ?? Markugen.findChrome() ?? '',
+      remove: options.remove ?? false,
+      extensions: options.extensions ?? ['html'],
+    };
   }
 
   /**
@@ -29,29 +42,16 @@ export default class PdfGenerator extends Generator
    * @param options the {@link PdfOptions options} to use for generation
    * @returns a list of PDF files that were generated
    */
-  public async generate(options:PdfOptions):Promise<string[]>
+  public async generate():Promise<string[]>
   {
-    // record the start time
-    const start = process.hrtime();
-
-    // validate before generation
-    const opts:Required<PdfOptions> = {
-      color: this.options.color,
-      quiet: this.options.quiet,
-      input: options.input,
-      browser: options.browser ?? Markugen.findChrome() ?? '',
-      remove: options.remove ?? false,
-      extensions: options.extensions ?? ['html'],
-    };
-    const files = this.validate(opts);
-
-    this.group(colors.green('Generating:'), 'pdf');
+    this.validate();
+    this.start();
     // prepare the browser
-    this.log('Browser:', opts.browser);
+    this.log('Browser:', this.options.browser);
 
     const promises:Promise<string>[] = [];
     // loop over and write the pdf for each file
-    for (const file of files) promises.push(this.writePdf(file, opts));
+    for (const file of this.files) promises.push(this.writePdf(file));
     // wait for all promises to be settled
     const results = await Promise.allSettled(promises);
     const generated:string[] = [];
@@ -59,11 +59,7 @@ export default class PdfGenerator extends Generator
       if (result.status === 'fulfilled')
         generated.push(result.value);
 
-    const end = process.hrtime(start);
-    const ms = end[0] * 1000 + end[1] / 1000000;
-    const elapsed = timeFormat(ms, {fixed: 2});
-    this.groupEnd();
-    this.log('Generating Finished:', elapsed);
+    this.finish();
     return generated;
   }
 
@@ -71,13 +67,13 @@ export default class PdfGenerator extends Generator
    * Creates the pdf version of the file
    * @param file the path to the html file or the html string
    */
-  private async writePdf(file:string, options:Required<PdfOptions>):Promise<string>
+  private async writePdf(file:string):Promise<string>
   {
     const parts = path.parse(file);
     const pdf = path.join(parts.dir, parts.name + '.pdf');
     this.log('Generating PDF:', pdf);
 
-    const browser = await puppeteer.launch({executablePath: options.browser});
+    const browser = await puppeteer.launch({executablePath: this.options.browser});
     const page = await browser.newPage();
     
     await page.goto(
@@ -125,7 +121,7 @@ export default class PdfGenerator extends Generator
     await browser.close();
 
     // remove the html file if remove option given
-    if (options.remove) fs.removeSync(file);
+    if (this.options.remove) fs.removeSync(file);
 
     // return the path to the pdf
     return pdf;
@@ -136,60 +132,60 @@ export default class PdfGenerator extends Generator
    * @param options the {@link PdfOptions options} to validate
    * @returns an array of files to generate PDFs for
    */
-  private validate(options:Required<PdfOptions>):string[]
+  private validate():void
   {
-    const files:string[] = [];
+    // clear out the files
+    this.files.length = 0;
+
     // always make it an array
-    if (!Array.isArray(options.input)) options.input = [options.input];
+    if (!Array.isArray(this.options.input)) this.options.input = [this.options.input];
     // resolve the paths
-    for(let i = 0; i < options.input.length; i++)
+    for(let i = 0; i < this.options.input.length; i++)
     {
-      options.input[i] = path.resolve(options.input[i]);
-      if (!fs.existsSync(options.input[i]))
-        throw new Error(`Input path does not exist [${options.input[i]}]`);
+      this.options.input[i] = path.resolve(this.options.input[i]);
+      if (!fs.existsSync(this.options.input[i]))
+        throw new Error(`Input path does not exist [${this.options.input[i]}]`);
     }
 
     // check the browser
-    if (!options.browser || !fs.existsSync(options.browser))
-      throw new Error(`Unable to locate browser at [${options.browser}], cannot generate PDFs`);
+    if (!this.options.browser || !fs.existsSync(this.options.browser))
+      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
 
     // handle the extensions
-    if (options.extensions.length === 0) options.extensions.push('html');
+    if (this.options.extensions.length === 0) this.options.extensions.push('html');
     let pattern = '\\.';
-    for (let i = 0; i < options.extensions.length; i++)
-      pattern += `${i !== 0 ? '|' : ''}(${options.extensions[i]})`;
+    for (let i = 0; i < this.options.extensions.length; i++)
+      pattern += `${i !== 0 ? '|' : ''}(${this.options.extensions[i]})`;
     pattern += '$';
     const regex = new RegExp(pattern, 'i');
 
     // collect the files
-    for(const file of options.input)
+    for(const file of this.options.input)
     {
       const stat = fs.lstatSync(file);
       // directories need to be globbed
-      if (stat.isDirectory()) this.collect(file, files, regex);
+      if (stat.isDirectory()) this.collect(file, regex);
       // files are good to go
-      else files.push(file);
+      else this.files.push(file);
     }
 
     // nothing to do if no files found
-    if (files.length === 0) 
+    if (this.files.length === 0) 
       throw new Error('No files found for PDF generation');
-
-    return files;
   }
 
   /**
    * Collects all html files found in the given directory
    * @param dir the directory to look in
    */
-  private collect(dir:string, files:string[], regex:RegExp)
+  private collect(dir:string, regex:RegExp)
   {
     const paths = fs.readdirSync(dir, {withFileTypes: true});
     for (const p of paths)
     {
       const full = path.join(p.parentPath, p.name);
-      if (p.isFile() && regex.test(p.name)) files.push(full);
-      else if (p.isDirectory()) this.collect(full, files, regex);
+      if (p.isFile() && regex.test(p.name)) this.files.push(full);
+      else if (p.isDirectory()) this.collect(full, regex);
     }
   }
 }
