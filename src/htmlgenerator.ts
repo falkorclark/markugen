@@ -241,21 +241,6 @@ export default class HtmlGenerator extends Generator
     // check the hidden files and folders
     return !this.options.includeHidden && path.basename(file).startsWith('.');
   }
-  /**
-   * Returns true if the given file is relative to the input directory or is
-   * a valid URL.
-   * @param file the file to check
-   * @returns true if the file is relative or a URL
-   */
-  public isRelative(file:string):boolean
-  {
-    // URLs are good to go 
-    if (URL.canParse(file)) return true;
-    // path cannot be absolute
-    if (path.isAbsolute(file)) return false;
-    // must be relative to the input directory
-    return fs.existsSync(path.resolve(this.inputDir, file));
-  }
   
   /**
    * Validates the options and makes changes where necessary
@@ -334,22 +319,35 @@ export default class HtmlGenerator extends Generator
    * @param files the files to check for relativeness
    * @returns the new files with non-relative files removed
    */
-  private filterRelative(files:string[])
+  private filterInput(files:string[])
   {
-    const filtered = files.filter((file) => 
+    const filtered:string[] = [];
+    for(const file of files)
     {
-      if (file === '') return false;
-      if (!this.isRelative(file))
-      {
-        this.warning(`Given file is not relative to input directory [${colors.red(file)}]`);
-        return false;
-      }
-      return true;
-    });
-    // resolve to full paths
-    for (let i = 0; i < filtered.length; i++) 
-      filtered[i] = path.resolve(this.inputDir, filtered[i]);
+      if (!file) continue;
+      const resolved = this.resolveInput(file);
+      if (!resolved) this.warning(`Given file or folder does not exist [${colors.red(file)}]`);
+      else filtered.push(resolved);
+    }
     return filtered;
+  }
+  /**
+   * Resolves and normalizes paths. Relative paths are treated with respect
+   * to the input directory. Returns undefined if the path does not exist.
+   * @param file the file to check
+   * @returns the resolved path if valid or undefined if invalid
+   */
+  private resolveInput(file:string):string|undefined
+  {
+    // absolute paths are good if they exist
+    if (path.isAbsolute(file))
+      return fs.existsSync(file) ? path.normalize(file) : undefined;
+    // URLs are good
+    else if (URL.canParse(file)) return file;
+    
+    // resolve relative paths with respect to input directory
+    const full = path.resolve(this.inputDir, file);
+    return fs.existsSync(full) ? full : undefined;
   }
 
   /**
@@ -359,21 +357,21 @@ export default class HtmlGenerator extends Generator
   {
     // assets should be excluded
     for (const ass of this.options.assets) this.options.exclude.push(ass);
-    this.options.exclude = this.filterRelative(this.options.exclude);
+    this.options.exclude = this.filterInput(this.options.exclude);
   }
   /**
    * Checks the validity of the js files
    */
   private checkJs()
   {
-    this.options.js = this.filterRelative(this.options.js);
+    this.options.js = this.filterInput(this.options.js);
   }
   /**
    * Checks the validity of the css files
    */
   private checkCss()
   {
-    this.options.css = this.filterRelative(this.options.css);
+    this.options.css = this.filterInput(this.options.css);
   }
   /**
    * Sets the appropriate themes based on the given values
@@ -397,12 +395,17 @@ export default class HtmlGenerator extends Generator
    */
   private checkFavicon()
   {
-    if (this.options.favicon && !this.isRelative(this.options.favicon))
+    if (this.options.favicon)
     {
-      this.warning(
-        `Given favicon is not relative to the input directory [${colors.red(this.options.favicon)}]`
-      );
-      this.options.favicon = '';
+      const file = this.resolveInput(this.options.favicon);
+      if (!file)
+      {
+        this.warning(
+          `Given favicon does not exist [${colors.red(this.options.favicon)}]`
+        );
+        this.options.favicon = '';
+      }
+      else this.options.favicon = file;
     }
   }
 
@@ -534,24 +537,35 @@ export default class HtmlGenerator extends Generator
     if (this.options.assets) this.assets.push(...this.options.assets);
     if (this.options.favicon) this.assets.push(this.options.favicon);
 
+    this.assets = this.filterInput(this.assets);
     if (this.assets.length > 0) this.group(colors.green('Copying:'), 'assets');
     for(const asset of this.assets) 
     {
-      // don't copy URLs
-      if (URL.canParse(asset)) continue;
+      const stat = fs.statSync(asset);
+      const rel = path.relative(this.inputDir, asset);
 
-      const file = path.resolve(this.inputDir, asset);
-      if (fs.existsSync(file))
+      // not relative tp input dir
+      if (rel.startsWith('..'))
       {
-        const stat = fs.statSync(file);
-        const out = path.join(this.output, stat.isFile() ? path.dirname(asset) : asset);
-
-        // include directory structure with files
-        this.log('Copy:', file);
-        fs.ensureDirSync(out);
-        fs.copySync(file, out);
+        this.log('Copy:', asset);
+        if (stat.isFile()) fs.copySync(asset, path.join(this.output, path.basename(asset)));
+        else if (stat.isDirectory())
+        {
+          const dir = path.basename(asset);
+          const out = path.join(this.output, dir);
+          fs.ensureDirSync(out);
+          fs.copySync(asset, out);
+        }
       }
-      else this.warning(`Given asset does not exist [${colors.red(file)}]`);
+      // relative to input dir
+      else
+      {
+        const out = path.join(this.output, stat.isFile() ? path.dirname(rel) : rel);
+        // include directory structure with files
+        this.log('Copy:', asset);
+        fs.ensureDirSync(out);
+        fs.copySync(asset, out);
+      }
     }
     if (this.assets.length > 0) this.groupEnd();
   }

@@ -24,7 +24,7 @@ export class HtmlToPdf<U extends Options> implements CommandModule<object, U>
         alias: ['exts'],
         describe: 'list of file extensions to search the input directory for',
         type: 'array',
-        default: ['md'],
+        default: ['html'],
       },
       browser: {
         alias: ['b'],
