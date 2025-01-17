@@ -5,7 +5,7 @@ a new instance of Markugen. The following output shows all the available
 options:
 
 ```ts
-markugen.import ../../src/options.ts
+markugen.import ../../src/markugenoptions.ts
 ```
 
 ## Themes

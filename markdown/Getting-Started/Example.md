@@ -68,13 +68,12 @@ by adding the following code somewhere in your project:
 // import markugen
 import Markugen from 'markugen';
 
-// setup the options
-const mark = new Markugen({
+// create an instance
+const mark = new Markugen();
+// generate the website
+await mark.generate({
   input: 'docs',
 });
-
-// generate the website
-mark.generate();
 ```
 
 > [!NOTE]
@@ -103,14 +102,13 @@ modifying your code to look like the following:
 // import markugen
 import Markugen from 'markugen';
 
-// setup the options
-const mark = new Markugen({
+// create the instance
+const mark = new Markugen();
+// generate the website
+mark.generate({
   input: 'docs',
   title: 'My Markugen Website', // customize the website title
 });
-
-// generate the website
-mark.generate();
 ```
 
 ### Custom Page Title
