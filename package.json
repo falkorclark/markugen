@@ -1,6 +1,6 @@
 {
   "name": "markugen",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Markdown to HTML/PDF static site generation tool",
   "repository": {
     "type": "git",
@@ -46,7 +46,8 @@
     "md-to-html",
     "pdf",
     "md-to-pdf",
-    "markdown-to-pdf"
+    "markdown-to-pdf",
+    "html-to-pdf"
   ],
   "scripts": {
     "start": "node --import tsx src/bin/cli.ts",

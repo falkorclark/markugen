@@ -52,6 +52,24 @@ markugen --help
 The help option will output the following help message:
 
 ```
-markugen.exec npm start help
+markugen.exec npm start -- help
 ```
 
+## Subcommands
+The CLI has two subcommands that can be used: `html` and `pdf`. The subcommands
+have aliases as well: `mdtohtml` and `htmltopdf` respectively. The `html`
+subcommand is the default command used by the CLI; therefore, if no command
+is provided, it will use the `html` command. The options available for each 
+subcommand can be obtained by providing the name of the command right before
+the help option. The following two outputs show the options available via
+the default `html` subcommand and the `pdf` subcommand respectively:
+
+### Markdown to HTML
+```
+markugen.exec npm start -- html help
+```
+
+### HTML to PDF
+```
+markugen.exec npm start -- pdf help
+```

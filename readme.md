@@ -44,7 +44,7 @@ of the major features are listed below:
 ## Major Features
 
 * Markdown to HTML
-* Markdown to PDF
+* Markdown/HTML to PDF
 * Website generation
 * Static HTML generation (no need for a server)
 * Reactive website sitemap and Table of Contents
@@ -64,18 +64,18 @@ website: [falkorclark.com/markugen](https://www.falkorclark.com/markugen/index.h
 ## Usage
 
 The following code will generate the docs located in the Markugen package under
-`docs-md` to a folder called `demo` and clear the `demo` directory before
+`markdown` to a folder called `demo` and clear the `demo` directory before
 generation:
 
 ```ts
 import Markugen from 'markugen';
 
-const mark = new Markugen({
-  input: 'docs-md',
+const mark = new Markugen();
+mark.generate({
+  input: 'markdown',
   output: 'demo',
   clearOutput: true,
 });
-mark.generate();
 ```
 
 ## Related

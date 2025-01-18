@@ -13,13 +13,13 @@ function main()
  */
 function docs()
 {
-  const mark = new Markugen({
+  const mark = new Markugen();
+  mark.mdtohtml({
     input: 'markdown',
     output: 'docs',
     assets: ['examples'],
     clearOutput: true,
   });
-  mark.generate();
 }
 
 /**

@@ -2,11 +2,11 @@ import { MarkedExtension, Token } from 'marked';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
-import Markugen from '../markugen';
+import HtmlGenerator from '../htmlgenerator';
 
 export interface Options 
 {
-  markugen:Markugen,
+  generator:HtmlGenerator,
   file?:string,
 }
 
@@ -26,7 +26,7 @@ function commands(token:Token, options:Options)
 {
   if (token.type !== 'code') return;
 
-  const match = token.text.match(Markugen.cmdRegex);
+  const match = token.text.match(HtmlGenerator.cmdRegex);
   if (match && match.groups && match.groups.cmd && match.groups.args)
   {
     // allow commands to be escaped
@@ -36,7 +36,7 @@ function commands(token:Token, options:Options)
     }
     else if (match.groups.cmd === 'exec')
     {
-      options.markugen.log('Executing:', match.groups.args);
+      options.generator.log('Executing:', match.groups.args);
       const result = spawnSync(match.groups.args, [], {
         shell: true,
         encoding: 'utf8', 
@@ -52,10 +52,10 @@ function commands(token:Token, options:Options)
       const importfile = path.resolve(reldir, match.groups.args);
       if (fs.existsSync(importfile))
       {
-        options.markugen.log('Importing:', importfile);
+        options.generator.log('Importing:', importfile);
         token.text = fs.readFileSync(importfile, {encoding: 'utf8'});
       }
-      else options.markugen.warning(`Unable to locate import file [${importfile}]`);
+      else options.generator.warning(`Unable to locate import file [${importfile}]`);
     }
   }
 }

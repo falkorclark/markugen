@@ -26,13 +26,15 @@ markdown files are in a different folder, just change the `input` option to
 point to the location of the folder containing your markdown files.
 
 ```ts
-// setup markugen and tell it where to find your files
-const mark = new Markugen({
+// import markugen
+import Markugen from 'markugen';
+
+// create an instance
+const mark = new Markugen();
+// generate the website
+await mark.generate({
   input: 'markdown',
 });
-
-// generate the website
-mark.generate();
 ```
 
 Markugen will output the HTML files to a folder in your current working 
@@ -41,14 +43,16 @@ location, provide Markugen with the output location via the `output` option
 like so:
 
 ```ts
-// setup markugen and tell it where to find your files
-const mark = new Markugen({
+// import markugen
+import Markugen from 'markugen';
+
+// create an instance
+const mark = new Markugen();
+// generate the website
+await mark.generate({
   input: 'markdown',
   output: 'docs',
 });
-
-// generate the website
-mark.generate();
 ```
 
 That's all folks!
@@ -59,7 +63,8 @@ matter of fact, the only required option is the `input` option; all other
 options have defaults. A few things to note about the defaults:
 
 * The file name will be used as the title of each page
-* The site title will be `Markugen vX.X.X` and should be overridden
+* The site title will be `Markugen v{{ return vars.markugen.version; }}` 
+  and should be overridden
 * Page order is defaulted to alphabetical order
 
 > [!TIP]
