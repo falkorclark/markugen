@@ -116,6 +116,7 @@ export default class Markugen
       const result = await new PdfGenerator(this, {
         input: generated,
         remove: gen.options.pdfOnly,
+        browser: gen.options.browser,
       }).generate();
       if (gen.options.pdfOnly) gen.removeGenerated();
       return result;
