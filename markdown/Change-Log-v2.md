@@ -3,6 +3,15 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 2.0.0 and will be continued for each new release
 moving forward.
 
+## v2.0.1
+This is a bug fix release. The primary bug fixed in this release deals with
+Markdown that is given as a string for input instead of a file. Release
+v2.0.0 outputs a file path in the HTML and causes some strange behavior in
+the output. This release fixes the bug and produces normal output.
+
+Additionally, a unit test was added that ensures this behavior is tested
+in all future releases.
+
 ## v2.0.0
 This is the first release of the Markugen 2.x series. 
 
