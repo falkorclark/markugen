@@ -104,7 +104,7 @@ export default class HtmlGenerator extends Generator
   {
     super(mark, options);
     this.options = {
-      input: path.resolve(options.input),
+      input: options.input,
       format: options.format ?? 'file',
       extensions: options.extensions ?? ['md'],
       outputFormat: options.outputFormat ?? 'file',
@@ -135,7 +135,7 @@ export default class HtmlGenerator extends Generator
     };
     
     // unescape newlines provided in the string
-    if (options.format === 'string' && options.cli) 
+    if (options.format === 'string' && options.cli === true) 
       this.options.input = options.input.replace(/\\n/g, '\n');
 
     this.templates = path.resolve(mark.root, 'templates');
@@ -207,7 +207,7 @@ export default class HtmlGenerator extends Generator
    */
   public get isInputSolo() { return this.isInputString || this.isInputFile; }
   /**
-   * @returns the path to the input
+   * @returns the path to the input or the string input
    */
   public get input() { return this.options.input; }
   /**
@@ -261,8 +261,12 @@ export default class HtmlGenerator extends Generator
     }
 
     // validate the input and options based on input
-    if (!this.isInputString && !fs.existsSync(this.options.input))
-      throw new Error(`Input does not exist [${colors.red(this.options.input)}]`);
+    if (!this.isInputString)
+    {
+      this.options.input = path.resolve(this.options.input);
+      if (!fs.existsSync(this.options.input))
+        throw new Error(`Input does not exist [${colors.red(this.options.input)}]`);
+    }
     
     // set the name of the output file
     if (this.isInputSolo && !this.options.outputName)
