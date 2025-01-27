@@ -5,6 +5,7 @@ import Markugen, { MarkugenOptions } from './markugen';
 import puppeteer from 'puppeteer-core';
 import url from 'url';
 import Generator from './generator';
+import * as Utils from './utils';
 
 export * from './pdfoptions';
 
@@ -57,8 +58,12 @@ export default class PdfGenerator extends Generator
     const results = await Promise.allSettled(promises);
     const generated:string[] = [];
     for (const result of results) 
+    {
       if (result.status === 'fulfilled')
         generated.push(result.value);
+      else if (result.status === 'rejected')
+        this.error(result.reason);
+    }
 
     this.finish();
     return generated;
@@ -83,24 +88,23 @@ export default class PdfGenerator extends Generator
     );
 
     // replace all markdown relative links with the pdf equivalent
-    if (this.options.links) await page.evaluate(() =>
+    try
     {
-      const links = document.querySelectorAll('.markugen-md-link');
-      for(const link of links)
+      if (this.options.links) await page.evaluate(() =>
       {
-        // @ts-expect-error puppeteer types no work here
-        const matches = link.href.matchAll(/\.html/ig);
-        // get the last match
-        let match = undefined; for (const m of matches) match = m;
-        if (match)
+        const links = document.querySelectorAll('.markugen-md-link');
+        for(const link of links)
         {
-          const lastIndex = match.index;
-          const length = match[0].length;
           // @ts-expect-error puppeteer types no work here
-          link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
+          const html = link.href.split('#')[0].split('/').pop();
+          const pdf = html.replace(/\.html$/ig, '.pdf');
+          // @ts-expect-error puppeteer types no work here
+          link.href = link.href.replace(html, pdf);
+          link.innerHTML = link.innerHTML.replace(html, pdf);
         }
-      }
-    });
+      });
+    }
+    catch(e:any) { this.error(e); }
 
     // get the content box
     const content = await page.$('#markugen-content');

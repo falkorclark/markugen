@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import Markugen, { HtmlOptions } from '../markugen';
+import Markugen, { MarkugenOptions } from '../markugen';
 import colors from 'colors';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 
-interface Options
+interface Options extends MarkugenOptions
 {
   browser: string,
   tests: string[],
@@ -45,12 +45,30 @@ async function main()
         choices: Object.keys(tests),
         default: Object.keys(tests),
       },
+      color: {
+        alias: ['c'],
+        describe: 'if true, console output will be colored',
+        type: 'boolean',
+        default: true
+      },
+      quiet: {
+        alias: ['q'],
+        describe: 'if given, no output will be displayed',
+        type: 'boolean',
+        default: false,
+      },
+      debug: {
+        alias: ['d'],
+        describe: 'turns on debugging',
+        type: 'boolean',
+        default: false,
+      },
     })
     .parse() as Options;
 
   try
   {
-    const mark = new Markugen();
+    const mark = new Markugen(args);
     for (const test of args.tests) await tests[test](mark, args);
   }
   catch(e:any) 
