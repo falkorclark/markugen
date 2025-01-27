@@ -116,6 +116,7 @@ export default class Markugen
         input: generated,
         remove: gen.options.pdfOnly,
         browser: gen.options.browser,
+        noSandbox: gen.options.noSandbox,
       }).generate();
       if (gen.options.pdfOnly) gen.removeGenerated();
       return result;

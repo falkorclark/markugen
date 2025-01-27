@@ -18,7 +18,7 @@ jobs:
       - uses: browser-actions/setup-chrome@v1
         id: chrome
       - run: npm ci
-      - run: npm test -- -b ${{ steps.chrome.outputs.chrome-path }}
+      - run: npm test -- --no-sandbox -b ${{ steps.chrome.outputs.chrome-path }}
 
   publish-npm:
     needs: build

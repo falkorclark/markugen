@@ -25,4 +25,10 @@ export interface PdfOptions
    * to PDF files instead of HTML. [default: true]
    */
   links?:boolean,
+  /**
+   * Be very careful with this option as it turns off the use of a sandbox
+   * when running chrome. This should only be necessary when running in a
+   * container.
+   */
+  noSandbox?:boolean,
 }

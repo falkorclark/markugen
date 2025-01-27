@@ -1,6 +1,5 @@
 
 import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
-import { version, description } from '../../package.json';
 import Markugen, { MarkugenOptions, PdfOptions } from '../markugen';
 
 type Options = MarkugenOptions & PdfOptions;
@@ -39,6 +38,12 @@ export class HtmlToPdf<U extends Options> implements CommandModule<object, U>
           'to PDF links',
         type: 'boolean',
         default: true
+      },
+      'no-sandbox': {
+        describe: 'turns off the use of a sandbox for Chrome, this should only ' +
+          'be necessary if running in a container',
+        type: 'boolean',
+        default: false,
       },
       color: {
         alias: ['c'],
