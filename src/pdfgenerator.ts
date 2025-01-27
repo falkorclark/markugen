@@ -80,6 +80,7 @@ export default class PdfGenerator extends Generator
     const pdf = path.join(parts.dir, parts.name + '.pdf');
     this.log('Generating PDF:', pdf);
 
+    console.dir(this.options);
     const browser = await puppeteer.launch({
       executablePath: this.options.browser,
       args: this.options.noSandbox === true ? ['--no-sandbox', '--disable-setuid-sandbox'] : undefined,
