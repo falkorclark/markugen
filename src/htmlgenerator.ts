@@ -117,6 +117,7 @@ export default class HtmlGenerator extends Generator
       pdf: options.pdf ?? false,
       pdfOnly: options.pdfOnly ?? false,
       browser: options.browser ?? Markugen.findChrome() ?? '',
+      noSandbox: options.noSandbox ?? false,
       exclude: options.exclude ?? [],
       title: options.title ?? 'Markugen v' + Markugen.version,
       inheritTitle: options.inheritTitle ?? false,
