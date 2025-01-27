@@ -51,18 +51,18 @@ export default class PdfGenerator extends Generator
     // prepare the browser
     this.log('Browser:', this.options.browser);
 
+    const generated:string[] = [];
     const promises:Promise<string>[] = [];
     // loop over and write the pdf for each file
     for (const file of this.files) promises.push(this.writePdf(file));
     // wait for all promises to be settled
     const results = await Promise.allSettled(promises);
-    const generated:string[] = [];
     for (const result of results) 
     {
       if (result.status === 'fulfilled')
         generated.push(result.value);
       else if (result.status === 'rejected')
-        this.error(result.reason);
+        throw new Error(result.reason);
     }
 
     this.finish();
@@ -88,23 +88,20 @@ export default class PdfGenerator extends Generator
     );
 
     // replace all markdown relative links with the pdf equivalent
-    try
+    if (this.options.links) await page.evaluate(() =>
     {
-      if (this.options.links) await page.evaluate(() =>
+      const links = document.querySelectorAll('.markugen-md-link');
+      for(const link of links)
       {
-        const links = document.querySelectorAll('.markugen-md-link');
-        for(const link of links)
-        {
-          // @ts-expect-error puppeteer types no work here
-          const html = link.href.split('#')[0].split('/').pop();
-          const pdf = html.replace(/\.html$/ig, '.pdf');
-          // @ts-expect-error puppeteer types no work here
-          link.href = link.href.replace(html, pdf);
-          link.innerHTML = link.innerHTML.replace(html, pdf);
-        }
-      });
-    }
-    catch(e:any) { this.error(e); }
+        //path.basename('foo/bar.txt');
+        // @ts-expect-error puppeteer types no work here
+        const html = link.href.split('#')[0].split('/').pop();
+        const pdf = html.replace(/\.html$/ig, '.pdf');
+        // @ts-expect-error puppeteer types no work here
+        link.href = link.href.replace(html, pdf);
+        link.innerHTML = link.innerHTML.replace(html, pdf);
+      }
+    });
 
     // get the content box
     const content = await page.$('#markugen-content');
