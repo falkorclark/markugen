@@ -1,5 +1,4 @@
 import { Theme, Themes } from './themes';
-import Markugen from './markugen';
 
 /**
  * Generator configuration options

@@ -9,7 +9,6 @@ import { IMarkugen } from './imarkugen';
 import { spawnSync } from 'node:child_process';
 import PdfGenerator, { PdfOptions } from './pdfgenerator';
 import HtmlGenerator, { HtmlOptions } from './htmlgenerator';
-import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
 
 export * from './imarkugen';
 export * from './htmlgenerator';

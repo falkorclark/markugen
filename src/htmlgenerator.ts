@@ -73,6 +73,10 @@ export default class HtmlGenerator extends Generator
    */
   private generated:string[] = [];
   /**
+   * The assets that were copied
+   */
+  private copied:string[] = [];
+  /**
    * JavaScript to embed in each page
    */
   private script?:string;
@@ -185,7 +189,7 @@ export default class HtmlGenerator extends Generator
     // clear the assets
     if (!this.options.keepAssets)
     {
-      for (const f of this.assets)
+      for (const f of this.copied)
         if (fs.existsSync(f))
           fs.removeSync(f);
     }
@@ -425,7 +429,8 @@ export default class HtmlGenerator extends Generator
     this.style = undefined;
     this.script = undefined;
     this.assets = [];
-    this.generated.length = 0;
+    this.generated = [];
+    this.copied = [];
 
     // collect all of the children and build the sitemap
     if (!this.addChildren(this.inputDir, this.sitemap))
@@ -547,28 +552,35 @@ export default class HtmlGenerator extends Generator
     {
       const stat = fs.statSync(asset);
       const rel = path.relative(this.inputDir, asset);
+      const basename = path.basename(asset);
 
       // not relative tp input dir
       if (rel.startsWith('..'))
       {
         this.log('Copy:', asset);
-        if (stat.isFile()) fs.copySync(asset, path.join(this.output, path.basename(asset)));
+        const out = path.join(this.output, basename);
+        if (stat.isFile())
+        {
+          fs.copySync(asset, out);
+          this.copied.push(out);
+        }
         else if (stat.isDirectory())
         {
-          const dir = path.basename(asset);
-          const out = path.join(this.output, dir);
           fs.ensureDirSync(out);
           fs.copySync(asset, out);
+          this.copied.push(out);
         }
       }
       // relative to input dir
       else
       {
-        const out = path.join(this.output, stat.isFile() ? path.dirname(rel) : rel);
+        const dir = path.join(this.output, stat.isFile() ? path.dirname(rel) : rel);
         // include directory structure with files
         this.log('Copy:', asset);
-        fs.ensureDirSync(out);
+        fs.ensureDirSync(dir);
+        const out = stat.isFile() ? path.join(dir, basename) : dir;
         fs.copySync(asset, out);
+        this.copied.push(out);
       }
     }
     if (this.assets.length > 0) this.groupEnd();

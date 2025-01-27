@@ -2,6 +2,9 @@
 This page has a lot of sections to test the layout of the Table of Contents
 and how the links react when clicked.
 
+This is a link that has the URL in the text as well:
+[Layout.md](./Layout.md#another-section).
+
 ## Another Section
 Just another section.
 

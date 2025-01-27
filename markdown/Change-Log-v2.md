@@ -3,6 +3,18 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 2.0.0 and will be continued for each new release
 moving forward.
 
+## v2.0.2
+This is another bug fix release. The following bugs were fixed in this release:
+
+* Assets that were given as file paths and not directory paths were causing an
+  error to be thrown due to the target being a directory. File paths now work
+  just the same as directory paths.
+* The text portion of a Markdown link was not being parsed as Markdown which
+  resulted in the raw form of the text. The links now get parsed and
+  interpreted properly.
+* Markdown links who's text contains the link will have the extension replaced
+  with the appropriate extension (html) in the text as well as the href.
+
 ## v2.0.1
 This is a bug fix release. The primary bug fixed in this release deals with
 Markdown that is given as a string for input instead of a file. Release
