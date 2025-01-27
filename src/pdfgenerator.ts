@@ -79,7 +79,10 @@ export default class PdfGenerator extends Generator
     const pdf = path.join(parts.dir, parts.name + '.pdf');
     this.log('Generating PDF:', pdf);
 
-    const browser = await puppeteer.launch({executablePath: this.options.browser});
+    const browser = await puppeteer.launch({
+      executablePath: this.options.browser,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
     
     await page.goto(

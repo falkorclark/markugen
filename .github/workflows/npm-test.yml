@@ -16,7 +16,5 @@ jobs:
           node-version: 20
       - uses: browser-actions/setup-chrome@v1
         id: chrome
-        with:
-          chrome-version: 134.0.6976.0
       - run: npm ci
       - run: npm test -- -b ${{ steps.chrome.outputs.chrome-path }}
