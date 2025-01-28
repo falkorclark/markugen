@@ -39,11 +39,11 @@ export class HtmlToPdf<U extends Options> implements CommandModule<object, U>
         type: 'boolean',
         default: true
       },
-      'no-sandbox': {
+      sandbox: {
         describe: 'turns off the use of a sandbox for Chrome, this should only ' +
-          'be necessary if running in a container',
+          'be necessary if running in a container and --pdf is true',
         type: 'boolean',
-        default: false,
+        default: true,
       },
       color: {
         alias: ['c'],

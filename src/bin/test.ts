@@ -9,7 +9,7 @@ interface Options extends MarkugenOptions
 {
   browser: string,
   tests: string[],
-  noSandbox: boolean,
+  sandbox: boolean,
 }
 
 type TestFunc = (mark:Markugen, options:Options) => void|Promise<void>;
@@ -46,11 +46,11 @@ async function main()
         choices: Object.keys(tests),
         default: Object.keys(tests),
       },
-      'no-sandbox': {
+      sandbox: {
         describe: 'turns off the use of a sandbox for Chrome, this should only ' +
-          'be necessary if running in a container',
+          'be necessary if running in a container and --pdf is true',
         type: 'boolean',
-        default: false,
+        default: true,
       },
       color: {
         alias: ['c'],
@@ -137,7 +137,7 @@ async function pdf(mark:Markugen, args:Options)
     favicon: 'extra/favicon.ico',
     pdf: true,
     pdfOnly: true,
-    noSandbox: args.noSandbox,
+    sandbox: args.sandbox,
     browser: args.browser,
     keepAssets: false,
   });

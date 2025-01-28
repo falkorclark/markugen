@@ -68,11 +68,11 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         type: 'string',
         default: Markugen.findChrome(),
       },
-      'no-sandbox': {
+      sandbox: {
         describe: 'turns off the use of a sandbox for Chrome, this should only ' +
           'be necessary if running in a container and --pdf is true',
         type: 'boolean',
-        default: false,
+        default: true,
       },
       exclude: {
         alias: ['x'],

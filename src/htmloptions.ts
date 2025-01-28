@@ -60,9 +60,9 @@ export interface HtmlOptions
   /**
    * Be very careful with this option as it turns off the use of a sandbox
    * when running chrome. This should only be necessary when running in a
-   * container.
+   * container. [default: true]
    */
-  noSandbox?:boolean,
+  sandbox?:boolean,
   /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of

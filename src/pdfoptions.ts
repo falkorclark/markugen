@@ -28,7 +28,7 @@ export interface PdfOptions
   /**
    * Be very careful with this option as it turns off the use of a sandbox
    * when running chrome. This should only be necessary when running in a
-   * container.
+   * container. [default: true]
    */
-  noSandbox?:boolean,
+  sandbox?:boolean,
 }
