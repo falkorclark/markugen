@@ -7,11 +7,6 @@ export interface PdfOptions
    */
   input:string|string[],
   /**
-   * The path to the Chrome or Firefox executable. If not given, a Chrome 
-   * browser will attempt to be found.
-   */
-  browser?:string,
-  /**
    * If true, the html files will be removed after the PDF 
    * files are generated. [default: false]
    */
@@ -25,10 +20,4 @@ export interface PdfOptions
    * to PDF files instead of HTML. [default: true]
    */
   links?:boolean,
-  /**
-   * Be very careful with this option as it turns off the use of a sandbox
-   * when running chrome. This should only be necessary when running in a
-   * container. [default: true]
-   */
-  sandbox?:boolean,
 }

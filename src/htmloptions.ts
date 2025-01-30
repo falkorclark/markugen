@@ -53,17 +53,6 @@ export interface HtmlOptions
    */
   pdfOnly?:boolean,
   /**
-   * The path to the Chrome or Firefox executable. This is only required if {@link pdf}
-   * is true and Markugen is unable to locate the executable.
-   */
-  browser?:string,
-  /**
-   * Be very careful with this option as it turns off the use of a sandbox
-   * when running chrome. This should only be necessary when running in a
-   * container. [default: true]
-   */
-  sandbox?:boolean,
-  /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of
    * paths to exclude. The paths should be relative to the {@link input}

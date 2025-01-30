@@ -4,6 +4,7 @@ import Markugen, { MarkugenOptions } from '../markugen';
 import colors from 'colors';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
+import { MarkugenArgs } from '../commands/markugenargs';
 
 interface Options extends MarkugenOptions
 {
@@ -33,12 +34,7 @@ async function main()
     .alias(['h'], 'help')
     .help('h')
     .options({
-      browser: {
-        alias: ['b'],
-        describe: 'path to chrome executable',
-        type: 'string',
-        default: Markugen.findChrome(),
-      },
+      ...MarkugenArgs,
       tests: {
         alias: ['t'],
         describe: 'list of tests to include',
@@ -46,32 +42,8 @@ async function main()
         choices: Object.keys(tests),
         default: Object.keys(tests),
       },
-      sandbox: {
-        describe: 'turns off the use of a sandbox for Chrome, this should only ' +
-          'be necessary if running in a container and --pdf is true',
-        type: 'boolean',
-        default: true,
-      },
-      color: {
-        alias: ['c'],
-        describe: 'if true, console output will be colored',
-        type: 'boolean',
-        default: true
-      },
-      quiet: {
-        alias: ['q'],
-        describe: 'if given, no output will be displayed',
-        type: 'boolean',
-        default: false,
-      },
-      debug: {
-        alias: ['d'],
-        describe: 'turns on debugging',
-        type: 'boolean',
-        default: false,
-      },
     })
-    .parse() as Options;
+    .parse() as unknown as Options;
 
   try
   {

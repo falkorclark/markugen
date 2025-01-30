@@ -2,6 +2,7 @@
 import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
 import { version } from '../../package.json';
 import Markugen, { MarkugenOptions, HtmlOptions } from '../markugen';
+import { MarkugenArgs } from './markugenargs';
 
 type Options = MarkugenOptions & HtmlOptions;
 
@@ -60,19 +61,6 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         describe: 'implies --pdf and removes all html generated files, leaving only the PDFs',
         type: 'boolean',
         default: false,
-      },
-      browser: {
-        alias: ['b'],
-        describe: 'the path to the Chrome or Firefox executable. This is only required ' +
-          'if --pdf is true and Markugen is unable to locate the executable.',
-        type: 'string',
-        default: Markugen.findChrome(),
-      },
-      sandbox: {
-        describe: 'turns off the use of a sandbox for Chrome, this should only ' +
-          'be necessary if running in a container and --pdf is true',
-        type: 'boolean',
-        default: true,
       },
       exclude: {
         alias: ['x'],
@@ -163,23 +151,7 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         type: 'boolean',
         default: false,
       },
-      color: {
-        alias: ['c'],
-        describe: 'if true, console output will be colored',
-        type: 'boolean',
-        default: true
-      },
-      quiet: {
-        alias: ['q'],
-        describe: 'if given, no output will be displayed',
-        type: 'boolean',
-        default: false,
-      },
-      debug: {
-        describe: 'turns on debugging',
-        type: 'boolean',
-        default: false,
-      },
+      ...MarkugenArgs,
     });
     return args as unknown as Argv<U>;
   };

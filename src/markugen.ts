@@ -5,12 +5,12 @@ import fs from 'fs-extra';
 import os from 'node:os';
 import { version, name, homepage } from '../package.json';
 import { MarkugenOptions } from './markugenoptions';
-import { IMarkugen } from './imarkugen';
+import { MarkugenDetails } from './markugendetails';
 import { spawnSync } from 'node:child_process';
 import PdfGenerator, { PdfOptions } from './pdfgenerator';
 import HtmlGenerator, { HtmlOptions } from './htmlgenerator';
 
-export * from './imarkugen';
+export * from './markugendetails';
 export * from './htmlgenerator';
 export * from './pdfgenerator';
 export * from './markugenoptions';
@@ -46,6 +46,8 @@ export default class Markugen
    * Set to true if this is being ran from the cli
    */
   private _options:Required<MarkugenOptions> = {
+    browser: Markugen.findChrome() ?? '',
+    sandbox: true,
     color: true,
     quiet: false,
     debug: false,
@@ -70,6 +72,8 @@ export default class Markugen
    */
   public set options(options:MarkugenOptions)
   {
+    this._options.browser = options.browser ?? this._options.browser;
+    this._options.sandbox = options.sandbox ?? this._options.sandbox;
     this._options.color = options.color ?? this._options.color;
     this._options.quiet = options.quiet ?? this._options.quiet;
     this._options.debug = options.debug ?? this._options.debug;
@@ -115,8 +119,6 @@ export default class Markugen
       const result = await new PdfGenerator(this, {
         input: generated,
         remove: gen.options.pdfOnly,
-        browser: gen.options.browser,
-        sandbox: gen.options.sandbox,
       }).generate();
       if (gen.options.pdfOnly) gen.removeGenerated();
       return result;
@@ -180,7 +182,7 @@ export default class Markugen
   /**
    * Returns an object representing the Markugen properties
    */
-  public static toObject(date?:Date):IMarkugen
+  public static toObject(date?:Date):MarkugenDetails
   {
     return {
       version: Markugen.version,

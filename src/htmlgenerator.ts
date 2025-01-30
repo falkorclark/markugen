@@ -116,8 +116,6 @@ export default class HtmlGenerator extends Generator
       outputName: options.outputName ?? '',
       pdf: options.pdf ?? false,
       pdfOnly: options.pdfOnly ?? false,
-      browser: options.browser ?? Markugen.findChrome() ?? '',
-      sandbox: options.sandbox ?? true,
       exclude: options.exclude ?? [],
       title: options.title ?? 'Markugen v' + Markugen.version,
       inheritTitle: options.inheritTitle ?? false,
@@ -281,9 +279,14 @@ export default class HtmlGenerator extends Generator
     }
 
     // handle pdf options
-    if (this.options.pdf && !this.options.browser) this.options.browser = Markugen.findChrome() ?? '';
-    if (this.options.pdf && (!this.options.browser || !fs.existsSync(this.options.browser)))
-      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
+    if (this.options.pdf && !this.mark.options.browser) 
+      this.mark.options.browser = Markugen.findChrome() ?? '';
+    if (this.options.pdf && 
+      (!this.mark.options.browser || !fs.existsSync(this.mark.options.browser))
+    )
+    {
+      throw new Error(`Unable to locate browser at [${this.mark.options.browser}], cannot generate PDFs`);
+    }
 
     // output string only valid for input string
     if (this.options.outputFormat === 'string' && !this.isInputFile && this.options.format !== 'string')

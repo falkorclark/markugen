@@ -32,11 +32,9 @@ export default class PdfGenerator extends Generator
     super(mark, options); 
     this.options = {
       input: options.input,
-      browser: options.browser ?? Markugen.findChrome() ?? '',
       remove: options.remove ?? false,
       extensions: options.extensions ?? ['html'],
       links: options.links ?? true,
-      sandbox: options.sandbox ?? true,
     };
   }
 
@@ -50,7 +48,7 @@ export default class PdfGenerator extends Generator
     this.validate();
     this.start();
     // prepare the browser
-    this.log('Browser:', this.options.browser);
+    this.log('Browser:', this.mark.options.browser);
 
     const generated:string[] = [];
     const promises:Promise<string>[] = [];
@@ -81,8 +79,8 @@ export default class PdfGenerator extends Generator
     this.log('Generating PDF:', pdf);
 
     const browser = await puppeteer.launch({
-      executablePath: this.options.browser,
-      args: this.options.sandbox === false ? ['--no-sandbox', '--disable-setuid-sandbox'] : undefined,
+      executablePath: this.mark.options.browser,
+      args: this.mark.options.sandbox === false ? ['--no-sandbox', '--disable-setuid-sandbox'] : undefined,
     });
     const page = await browser.newPage();
     
@@ -154,8 +152,8 @@ export default class PdfGenerator extends Generator
     }
 
     // check the browser
-    if (!this.options.browser || !fs.existsSync(this.options.browser))
-      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
+    if (!this.mark.options.browser || !fs.existsSync(this.mark.options.browser))
+      throw new Error(`Unable to locate browser at [${this.mark.options.browser}], cannot generate PDFs`);
 
     // handle the extensions
     if (this.options.extensions.length === 0) this.options.extensions.push('html');
