@@ -45,17 +45,28 @@ function commands(token:Token, options:Options)
       const text = (result.stdout + '\n' + result.stderr).trim();
       // remove coloring characters
       token.text = text.replace(/(\x1b[^m]+m)/gi, '');
+      if (result.stderr)
+      {
+        options.generator.group();
+        options.generator.warning(text);
+        options.generator.groupEnd();
+      }
     }
     else if (match.groups.cmd === 'import')
     {
       const reldir = options.file ? path.dirname(options.file) : process.cwd();
       const importfile = path.resolve(reldir, match.groups.args);
+      options.generator.log('Importing:', importfile);
       if (fs.existsSync(importfile))
       {
-        options.generator.log('Importing:', importfile);
         token.text = fs.readFileSync(importfile, {encoding: 'utf8'});
       }
-      else options.generator.warning(`Unable to locate import file [${importfile}]`);
+      else
+      {
+        options.generator.group();
+        options.generator.warning(`Unable to locate import file [${importfile}]`);
+        options.generator.groupEnd();
+      }
     }
   }
 }
