@@ -1,111 +1,16 @@
-# Layout Test
-This page has a lot of sections to test the layout of the Table of Contents
-and how the links react when clicked.
+# Text File Test
+This page is a test of markdown that uses a text file instead of a markdown
+file extension.
 
-## Another Section
-Just another section.
+## Link Test
+This test is for links to markdown files that get converted by Markugen.
 
-#### Another Sub Section
-Just another sub section.
+This is a link that has the URL in the text as well:
+[Layout.md](./Layout.md#another-section).
 
-## Another Section
-Just another section.
+## Double Colon Test
+Double colons cause line breaks, this is a test of double colon results:
 
-### Another Sub Section
-Just another sub section.
+`Is there a line break here Foo\\:\\:Bar`
 
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
-
-## Another Section
-Just another section.
-
-### Another Sub Section
-Just another sub section.
+What about in normal text? Foo\:\:Bar

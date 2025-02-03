@@ -72,7 +72,7 @@ Markugen will define a custom variable within the `vars` object called
 following structure:
 
 ~~~js
-markugen.import ../../src/imarkugen.ts
+markugen.import ../../src/markugendetails.ts
 ~~~
 
 As an example, the following templated code block will output the values of

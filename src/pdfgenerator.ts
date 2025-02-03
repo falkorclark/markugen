@@ -5,6 +5,7 @@ import Markugen, { MarkugenOptions } from './markugen';
 import puppeteer from 'puppeteer-core';
 import url from 'url';
 import Generator from './generator';
+import * as Utils from './utils';
 
 export * from './pdfoptions';
 
@@ -31,7 +32,6 @@ export default class PdfGenerator extends Generator
     super(mark, options); 
     this.options = {
       input: options.input,
-      browser: options.browser ?? Markugen.findChrome() ?? '',
       remove: options.remove ?? false,
       extensions: options.extensions ?? ['html'],
       links: options.links ?? true,
@@ -48,17 +48,21 @@ export default class PdfGenerator extends Generator
     this.validate();
     this.start();
     // prepare the browser
-    this.log('Browser:', this.options.browser);
+    this.log('Browser:', this.mark.options.browser);
 
+    const generated:string[] = [];
     const promises:Promise<string>[] = [];
     // loop over and write the pdf for each file
     for (const file of this.files) promises.push(this.writePdf(file));
     // wait for all promises to be settled
     const results = await Promise.allSettled(promises);
-    const generated:string[] = [];
     for (const result of results) 
+    {
       if (result.status === 'fulfilled')
         generated.push(result.value);
+      else if (result.status === 'rejected')
+        throw new Error(result.reason);
+    }
 
     this.finish();
     return generated;
@@ -74,7 +78,10 @@ export default class PdfGenerator extends Generator
     const pdf = path.join(parts.dir, parts.name + '.pdf');
     this.log('Generating PDF:', pdf);
 
-    const browser = await puppeteer.launch({executablePath: this.options.browser});
+    const browser = await puppeteer.launch({
+      executablePath: this.mark.options.browser,
+      args: this.mark.options.sandbox === false ? ['--no-sandbox', '--disable-setuid-sandbox'] : undefined,
+    });
     const page = await browser.newPage();
     
     await page.goto(
@@ -88,17 +95,13 @@ export default class PdfGenerator extends Generator
       const links = document.querySelectorAll('.markugen-md-link');
       for(const link of links)
       {
+        //path.basename('foo/bar.txt');
         // @ts-expect-error puppeteer types no work here
-        const matches = link.href.matchAll(/\.html/ig);
-        // get the last match
-        let match = undefined; for (const m of matches) match = m;
-        if (match)
-        {
-          const lastIndex = match.index;
-          const length = match[0].length;
-          // @ts-expect-error puppeteer types no work here
-          link.href = `${link.href.slice(0, lastIndex)}.pdf${link.href.slice(lastIndex + length)}`;
-        }
+        const html = link.href.split('#')[0].split('/').pop();
+        const pdf = html.replace(/\.html$/ig, '.pdf');
+        // @ts-expect-error puppeteer types no work here
+        link.href = link.href.replace(html, pdf);
+        link.innerHTML = link.innerHTML.replace(html, pdf);
       }
     });
 
@@ -149,8 +152,8 @@ export default class PdfGenerator extends Generator
     }
 
     // check the browser
-    if (!this.options.browser || !fs.existsSync(this.options.browser))
-      throw new Error(`Unable to locate browser at [${this.options.browser}], cannot generate PDFs`);
+    if (!this.mark.options.browser || !fs.existsSync(this.mark.options.browser))
+      throw new Error(`Unable to locate browser at [${this.mark.options.browser}], cannot generate PDFs`);
 
     // handle the extensions
     if (this.options.extensions.length === 0) this.options.extensions.push('html');

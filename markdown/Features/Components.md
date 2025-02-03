@@ -146,11 +146,11 @@ block with the output from the execution. The following example executes the
 `echo` command with a string:
 
 ##### Markdown
-~~~bat
-\markugen.exec echo Hello World!
+~~~sh
+\markugen.exec echo "Hello World!"
 ~~~
 
 ##### Result
 ~~~
-markugen.exec echo Hello World!
+markugen.exec echo {{ return vars.markugen.platform === 'windows' ? 'Hello World!' : '"Hello World!"'; }}
 ~~~

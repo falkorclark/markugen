@@ -1,5 +1,4 @@
 import { Theme, Themes } from './themes';
-import Markugen from './markugen';
 
 /**
  * Generator configuration options
@@ -53,11 +52,6 @@ export interface HtmlOptions
    * the PDFs.
    */
   pdfOnly?:boolean,
-  /**
-   * The path to the Chrome or Firefox executable. This is only required if {@link pdf}
-   * is true and Markugen is unable to locate the executable.
-   */
-  browser?:string,
   /**
    * List of files or folders to exclude when looking for markdown files in
    * the {@link input} directory. This can be a single path or an array of
