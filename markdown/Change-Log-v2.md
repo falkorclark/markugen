@@ -6,9 +6,15 @@ moving forward.
 ## v2.0.3
 This version has some bug fixes related to assets and some new features.
 
-* Favicon bug that was causing the path to be absolute is now fixed
+* Favicon bug that was causing the path to be absolute is now fixed.
 * Template expansion is now allowed in CSS and JS provided files along with 
-  CSS and JS provided strings
+  CSS and JS provided strings. See 
+  [Template Expansion](./Features/Preprocessor.md#template-expansion) 
+  in the Preprocessor section for more details.
+* A new flag was added to the [CLI](./Command-Line-Interface.md) that allows
+  setting of the dynamic variables used in template expansion: `--vars`. The
+  flag takes a path to a JSON file with a JSON object where each key in the
+  object represents a variable in template expansion.
 
 ## v2.0.2
 This is another bug fix release. The following bugs were fixed in this release:

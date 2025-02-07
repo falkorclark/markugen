@@ -3,6 +3,8 @@ import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
 import { version } from '../../package.json';
 import Markugen, { MarkugenOptions, HtmlOptions } from '../markugen';
 import { MarkugenArgs } from './markugenargs';
+import fs from 'fs-extra';
+import path from 'node:path';
 
 type Options = MarkugenOptions & HtmlOptions;
 
@@ -150,6 +152,13 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         describe: 'clears the output folder before building',
         type: 'boolean',
         default: false,
+      },
+      vars: {
+        alias: ['v'],
+        describe: 'path to a JSON file representing dynamic variables used in ' +
+          'template expansion',
+        type: 'string',
+        coerce: fs.readJSONSync,
       },
       ...MarkugenArgs,
     });
