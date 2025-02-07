@@ -3,6 +3,13 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 2.0.0 and will be continued for each new release
 moving forward.
 
+## v2.0.3
+This version has some bug fixes related to assets and some new features.
+
+* Favicon bug that was causing the path to be absolute is now fixed
+* Template expansion is now allowed in CSS and JS provided files along with 
+  CSS and JS provided strings
+
 ## v2.0.2
 This is another bug fix release. The following bugs were fixed in this release:
 

@@ -5,6 +5,7 @@ import colors from 'colors';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { MarkugenArgs } from '../commands/markugenargs';
+import path from 'node:path';
 
 interface Options extends MarkugenOptions
 {
@@ -19,6 +20,7 @@ async function main()
 {
   const tests:Record<string, TestFunc> = {
     html: html,
+    embed: embed,
     pdf: pdf,
     docs: docs,
     string: string,
@@ -48,7 +50,12 @@ async function main()
   try
   {
     const mark = new Markugen(args);
-    for (const test of args.tests) await tests[test](mark, args);
+    for (const test of args.tests)
+    {
+      mark.group(colors.magenta('Testing:'), test);
+      await tests[test](mark, args);
+      mark.groupEnd();
+    }
   }
   catch(e:any) 
   { 
@@ -57,6 +64,24 @@ async function main()
   }
 }
 
+const htmlOptions = {
+  input: 'devops/tests',
+  output: 'tests/html',
+  clearOutput: true,
+  includeHidden: true,
+  assets: ['extra', 'assets'],
+  extensions: ['md', 'txt'],
+  favicon: 'extra/favicon.ico',
+  css: ['extra/my.css'],
+  js: ['extra/my.js'],
+  vars: {
+    links: {
+      Google: 'https://www.google.com',
+      Markugen: 'https://www.falkorclark.com/markugen',
+    },
+  },
+};
+
 /**
  * Tests HTML output
  * @param mark the {@link Markugen} instance
@@ -64,14 +89,21 @@ async function main()
  */
 function html(mark:Markugen, args:Options)
 {
+  mark.mdtohtml(htmlOptions);
+}
+
+/**
+ * Tests HTML output with embed flag
+ * @param mark the {@link Markugen} instance
+ * @param args the cli arguments
+ */
+function embed(mark:Markugen, args:Options)
+{
   mark.mdtohtml({
-    input: 'devops/tests',
-    output: 'tests/html',
-    clearOutput: true,
-    includeHidden: true,
-    assets: ['extra', 'assets'],
-    extensions: ['md', 'txt'],
-    favicon: 'extra/favicon.ico',
+    ...htmlOptions,
+    embed: true,
+    output: 'tests/embed',
+    assets: ['assets', path.resolve('markdown/examples')],
   });
 }
 

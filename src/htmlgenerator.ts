@@ -32,6 +32,24 @@ interface MarkdownEntry
   md?:string,
 }
 
+interface Asset
+{
+  input:string,
+  output:string,
+  copy?:boolean,
+  file?:boolean,
+  expand?:boolean,
+}
+const EmptyAsset:Asset = { input: '', output: '' };
+
+interface Assets
+{
+  css:Asset[],
+  js:Asset[],
+  assets:Asset[],
+  favicon:Asset,
+}
+
 export default class HtmlGenerator extends Generator
 {
   /**
@@ -73,29 +91,17 @@ export default class HtmlGenerator extends Generator
    */
   private generated:string[] = [];
   /**
-   * The assets that were copied
-   */
-  private copied:string[] = [];
-  /**
    * JavaScript to embed in each page
    */
-  private script?:string;
-  /**
-   * Extra js files to include
-   */
-  private js:string[] = [];
+  private script:string = '';
   /**
    * CSS to embed in each page
    */
-  private style?:string;
-  /**
-   * Extra css files to include
-   */
-  private css:string[] = [];
+  private style:string = '';
   /**
    * Assets to copy over
    */
-  private assets:string[] = [];
+  private assets:Assets = { css: [], js: [], assets: [], favicon: EmptyAsset };
   /**
    * The preprocessor to use for template expansion
    */
@@ -177,20 +183,21 @@ export default class HtmlGenerator extends Generator
   }
 
   /**
-   * Cleans up the generated files and clears assets based on the last run
+   * Clears all assets from the last run
    */
-  public removeGenerated()
+  public clearAssets()
   {
-    let full = path.resolve(this.output, HtmlGenerator.markugenFiles.js.out);
-    if (fs.existsSync(full)) fs.removeSync(full);
-    full = path.resolve(this.output, HtmlGenerator.markugenFiles.css.out);
-    if (fs.existsSync(full)) fs.removeSync(full);
     // clear the assets
-    if (!this.options.keepAssets)
+    const temp:Asset[] = [];
+    for (const assets of Object.values(this.assets))
     {
-      for (const f of this.copied)
-        if (fs.existsSync(f))
-          fs.removeSync(f);
+      if (Array.isArray(assets)) temp.push(...assets);
+      else temp.push(assets);
+    }
+    for(const asset of temp)
+    {
+      const full = path.resolve(this.output, asset.output);
+      if (fs.existsSync(full)) fs.removeSync(full);
     }
   }
   
@@ -315,9 +322,7 @@ export default class HtmlGenerator extends Generator
     }
 
     this.setTheme();
-    this.checkFavicon();
-    this.checkCss();
-    this.checkJs();
+    this.checkAssets();
     this.checkExcluded();
 
     // quiet mode if string output
@@ -328,38 +333,33 @@ export default class HtmlGenerator extends Generator
   /**
    * Checks that the files are relative to the input directory and filters
    * out the ones that are not. Also resolves each path.
-   * @param files the files to check for relativeness
-   * @returns the new files with non-relative files removed
+   * @param paths the file(s) to check for relativeness
+   * @param file if true, checks that the input is a file
+   * @returns the file(s) with non-existing removed and fully resolved paths
    */
-  private filterInput(files:string[])
+  private filterInput(paths:string|string[], file:boolean = false):string[]
   {
+    const isArray = Array.isArray(paths);
+    const temp:string[] = isArray ? paths : [paths];
     const filtered:string[] = [];
-    for(const file of files)
+    for(const p of temp)
     {
-      if (!file) continue;
-      const resolved = this.resolveInput(file);
-      if (!resolved) this.warning(`Given file or folder does not exist [${colors.red(file)}]`);
+      if (!p) continue;
+      
+      const resolved = path.isAbsolute(p) ? path.normalize(p) : path.resolve(this.inputDir, p);
+      if (!fs.existsSync(resolved)) 
+      {
+        this.warning(`Given file or folder does not exist [${colors.red(p)}]`);
+      }
+      else if (file)
+      {
+        const stat = fs.statSync(resolved);
+        if (stat.isFile()) filtered.push(resolved);
+        else this.warning(`Given input must be a file [${colors.red(p)}]`);
+      }
       else filtered.push(resolved);
     }
     return filtered;
-  }
-  /**
-   * Resolves and normalizes paths. Relative paths are treated with respect
-   * to the input directory. Returns undefined if the path does not exist.
-   * @param file the file to check
-   * @returns the resolved path if valid or undefined if invalid
-   */
-  private resolveInput(file:string):string|undefined
-  {
-    // absolute paths are good if they exist
-    if (path.isAbsolute(file))
-      return fs.existsSync(file) ? path.normalize(file) : undefined;
-    // URLs are good
-    else if (URL.canParse(file)) return file;
-    
-    // resolve relative paths with respect to input directory
-    const full = path.resolve(this.inputDir, file);
-    return fs.existsSync(full) ? full : undefined;
   }
 
   /**
@@ -372,18 +372,61 @@ export default class HtmlGenerator extends Generator
     this.options.exclude = this.filterInput(this.options.exclude);
   }
   /**
-   * Checks the validity of the js files
+   * Checks the validity of the assets
    */
-  private checkJs()
+  private checkAssets()
   {
-    this.options.js = this.filterInput(this.options.js);
+    this.assets = { css: [], js: [], assets: [], favicon: EmptyAsset };
+    this.resolveAssets(
+      this.filterInput(this.options.js, true), 
+      this.assets.js, !this.options.embed, true
+    );
+    this.resolveAssets(
+      this.filterInput(this.options.css, true), 
+      this.assets.css, !this.options.embed, true
+    );
+    this.resolveAssets(
+      this.filterInput(this.options.favicon, true), 
+      this.assets.favicon
+    );
+    this.resolveAssets(
+      this.filterInput(this.options.assets), 
+      this.assets.assets
+    );
   }
   /**
-   * Checks the validity of the css files
+   * Resolves the paths and stats on assets
+   * @param assets the assets to filter
+   * @param where where to place the resolved assets
+   * @param copy whether these assets should be copied
    */
-  private checkCss()
+  private resolveAssets(assets:string|string[], where:Asset|Asset[], 
+    copy:boolean = true, expand:boolean = false)
   {
-    this.options.css = this.filterInput(this.options.css);
+    const isArray = Array.isArray(assets);
+    const temp:string[] = isArray ? assets : [assets];
+    for (const asset of temp)
+    {
+      const a:Asset = { input: asset, output: '', copy: copy, expand: expand };
+      const stat = fs.statSync(asset);
+      a.file = stat.isFile();
+
+      const rel = path.relative(this.inputDir, asset);
+      // not relative to input dir
+      if (rel.startsWith('..')) a.output = path.basename(asset);
+      // relative to input directory
+      else a.output = rel;
+
+      if (Array.isArray(where)) where.push(a);
+      else
+      {
+        where.input = a.input;
+        where.output = a.output;
+        where.copy = a.copy;
+        where.expand = a.expand;
+        where.file = a.file;
+      }
+    }
   }
   /**
    * Sets the appropriate themes based on the given values
@@ -402,24 +445,6 @@ export default class HtmlGenerator extends Generator
       };
     }
   }
-  /**
-   * Checks the validity of the favicon
-   */
-  private checkFavicon()
-  {
-    if (this.options.favicon)
-    {
-      const file = this.resolveInput(this.options.favicon);
-      if (!file)
-      {
-        this.warning(
-          `Given favicon does not exist [${colors.red(this.options.favicon)}]`
-        );
-        this.options.favicon = '';
-      }
-      else this.options.favicon = file;
-    }
-  }
 
   /**
    * Prepares the generator
@@ -430,11 +455,9 @@ export default class HtmlGenerator extends Generator
     this.sitemap.toc = this.options.toc;
     this.sitemap.home = this.options.home;
     this.sitemap.children = {};
-    this.style = undefined;
-    this.script = undefined;
-    this.assets = [];
+    this.style = '';
+    this.script = '';
     this.generated = [];
-    this.copied = [];
 
     // collect all of the children and build the sitemap
     if (!this.addChildren(this.inputDir, this.sitemap))
@@ -463,14 +486,52 @@ export default class HtmlGenerator extends Generator
     // create the directory
     if (!fs.existsSync(this.output)) fs.ensureDirSync(this.output);
 
-    // write and set the styles
-    this.writeStyles();
-    // write and the the scripts
-    this.writeScripts();
     // copy the assets over
-    this.copyAssets();
+    this.writeAssets();
   }
 
+  /**
+   * Copies the assets to the output directory
+   */
+  private writeAssets()
+  {
+    this.group(colors.green('Writing:'), 'assets');
+    for(const asset of this.assets.assets) this.writeAsset(asset);
+    this.writeAsset(this.assets.favicon);
+    this.writeScripts();
+    this.writeStyles();
+    this.groupEnd();
+  }
+  /**
+   * Copies a single asset to the output directory
+   * @param asset the asset to copy
+   */
+  private writeAsset(asset:Asset)
+  {
+    if (asset.input && asset.output && asset.copy)
+    {
+      try 
+      { 
+        this.log(asset.expand ? 'Expand:' : 'Copy:', asset.input);
+        const out = path.join(this.output, asset.output);
+        const dir = path.join(this.output, asset.file ? path.dirname(asset.output) : asset.output);
+        fs.ensureDirSync(dir);
+        if (!asset.expand) fs.copySync(asset.input, out);
+        else
+        {
+          const text = fs.readFileSync(asset.input, {encoding:'utf8'});
+          fs.writeFileSync(out, this.preprocessor.process(text, asset.input));
+        }
+      }
+      catch(e:any) 
+      { 
+        this.warning(
+          `Unable to access asset [${colors.red(asset.input)}]`,
+          this.mark.options.debug ? `\n${e.stack}` : undefined,
+        ); 
+      }
+    }
+  }
   /**
    * Writes and sets the styles
    */
@@ -478,21 +539,97 @@ export default class HtmlGenerator extends Generator
   {
     // write out the sitemap
     const temp = path.resolve(this.templates, HtmlGenerator.markugenFiles.js.template);
-    this.script = fs.readFileSync(temp, {encoding: 'utf8'});
     this.preprocessor.vars.sitemap = this.removeInput(structuredClone(this.sitemap));
-    this.script = this.preprocessor.process(this.script, temp);
+    this.script = this.preprocessor.process(
+      `${fs.readFileSync(temp, {encoding: 'utf8'})}\n${this.options.script}`, 
+      temp
+    );
     if (!this.options.embed)
     {
       const file = HtmlGenerator.markugenFiles.js.out;
       const full = path.resolve(this.output, file);
-      fs.writeFileSync(
-        full, 
-        this.script + (this.options.script ? this.options.script : '')
-      );
-      this.js.push(file);
-      this.js.push(...this.options.js);
-      this.assets.push(...this.options.js);
-      this.script = undefined;
+      fs.writeFileSync(full, this.script);
+
+      // expand the js assets
+      for (const asset of this.assets.js) this.writeAsset(asset);
+
+      // the markugen script must be first
+      this.assets.js = [{ input: temp, output: file, file: true }, ...this.assets.js];
+      this.script = '';
+    }
+    else
+    {
+      // embed js from files
+      if (this.assets.js)
+      {
+        for (const asset of this.assets.js)
+        {
+          try 
+          { 
+            const text = fs.readFileSync(asset.input, {encoding:'utf8'});
+            this.script += '\n' + this.preprocessor.process(text, asset.input) + '\n'; 
+          }
+          catch(e:any) 
+          { 
+            this.warning(
+              `Given js file cannot be read [${colors.red(asset.input)}]`,
+              this.mark.options.debug ? `\n${e.stack}` : undefined,
+            ); 
+          }
+        }
+        this.assets.js = [];
+      }
+    }
+  }
+  /**
+   * Writes and sets the styles
+   */
+  private writeStyles()
+  {
+    // write out the styles
+    const temp = path.resolve(this.templates, HtmlGenerator.markugenFiles.css.template);
+    this.preprocessor.vars.theme = {
+      light: this.options.theme.light,
+      dark: this.options.theme.dark
+    };
+    this.style = this.preprocessor.process(
+      `${fs.readFileSync(temp, {encoding: 'utf8'})}\n${this.options.style}`, 
+      temp
+    );
+    if (!this.options.embed)
+    {
+      const file = HtmlGenerator.markugenFiles.css.out;
+      const full = path.resolve(this.output, file);
+      fs.writeFileSync(full, this.style);
+
+      // expand the css assets
+      for (const asset of this.assets.css) this.writeAsset(asset);
+
+      this.assets.css.push({ input: temp, output: file, file: true });
+      this.style = '';
+    }
+    else
+    {
+      // embed styles from files
+      if (this.assets.css)
+      {
+        for (const asset of this.assets.css)
+        {
+          try 
+          { 
+            const text = fs.readFileSync(asset.input, {encoding:'utf8'});
+            this.style += '\n' + this.preprocessor.process(text, asset.input) + '\n'; 
+          }
+          catch(e:any) 
+          { 
+            this.warning(
+              `Given css file cannot be read [${colors.red(asset.input)}]`,
+              this.mark.options.debug ? `\n${e.stack}` : undefined,
+            ); 
+          }
+        }
+      }
+      this.assets.css = [];
     }
   }
 
@@ -512,82 +649,6 @@ export default class HtmlGenerator extends Generator
         this.removeInput(page.children[child]);
     }
     return page;
-  }
-
-  /**
-   * Writes and sets the styles
-   */
-  private writeStyles()
-  {
-    // write out the styles
-    const temp = path.resolve(this.templates, HtmlGenerator.markugenFiles.css.template);
-    this.style = fs.readFileSync(temp, {encoding: 'utf8'});
-    this.preprocessor.vars.theme = {
-      light: this.options.theme.light,
-      dark: this.options.theme.dark
-    };
-    this.style = this.preprocessor.process(this.style, temp);
-    if (!this.options.embed)
-    {
-      const file = HtmlGenerator.markugenFiles.css.out;
-      const full = path.resolve(this.output, file);
-      fs.writeFileSync(
-        full, 
-        this.style + (this.options.style ? this.options.style : '')
-      );
-      this.css.push(file);
-      this.css.push(...this.options.css);
-      this.assets.push(...this.options.css);
-      this.style = undefined;
-    }
-  }
-
-  /**
-   * Copies the assets to the output directory
-   */
-  private copyAssets()
-  {
-    if (this.options.assets) this.assets.push(...this.options.assets);
-    if (this.options.favicon) this.assets.push(this.options.favicon);
-
-    this.assets = this.filterInput(this.assets);
-    if (this.assets.length > 0) this.group(colors.green('Copying:'), 'assets');
-    for(const asset of this.assets) 
-    {
-      const stat = fs.statSync(asset);
-      const rel = path.relative(this.inputDir, asset);
-      const basename = path.basename(asset);
-
-      // not relative tp input dir
-      if (rel.startsWith('..'))
-      {
-        this.log('Copy:', asset);
-        const out = path.join(this.output, basename);
-        if (stat.isFile())
-        {
-          fs.copySync(asset, out);
-          this.copied.push(out);
-        }
-        else if (stat.isDirectory())
-        {
-          fs.ensureDirSync(out);
-          fs.copySync(asset, out);
-          this.copied.push(out);
-        }
-      }
-      // relative to input dir
-      else
-      {
-        const dir = path.join(this.output, stat.isFile() ? path.dirname(rel) : rel);
-        // include directory structure with files
-        this.log('Copy:', asset);
-        fs.ensureDirSync(dir);
-        const out = stat.isFile() ? path.join(dir, basename) : dir;
-        fs.copySync(asset, out);
-        this.copied.push(out);
-      }
-    }
-    if (this.assets.length > 0) this.groupEnd();
   }
 
   /**
@@ -785,49 +846,6 @@ export default class HtmlGenerator extends Generator
   }
 
   /**
-   * @returns the styles to embed
-   */
-  private get styles()
-  {
-    if (!this.options.embed) return undefined;
-    let styles = this.style ? this.style : '';
-    // add string styles
-    if (this.options.style) styles += '\n' + this.options.style + '\n';
-    // embed styles from files
-    if (this.options.css)
-    {
-      for (const file of this.options.css)
-      {
-        if (URL.canParse(file)) continue;
-        try { styles += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
-        catch(e) { this.warning(`Given css file cannot be read [${colors.red(file)}]`); }
-      }
-    }
-    return styles === '' ? undefined : styles;
-  }
-
-  /**
-   * @returns the scripts to embed
-   */
-  private get scripts()
-  {
-    if (!this.options.embed) return undefined;
-    let scripts = this.script ? this.script : '';
-    if (this.options.script) scripts += '\n' + this.options.script + '\n';
-    // embed js from files
-    if (this.options.js)
-    {
-      for (const file of this.options.js)
-      {
-        if (URL.canParse(file)) continue;
-        try { scripts += '\n' + fs.readFileSync(file, {encoding:'utf8'}) + '\n'; }
-        catch(e) { this.warning(`Given js file cannot be read [${colors.red(file)}]`); }
-      }
-    }
-    return scripts === '' ? undefined : scripts;
-  }
-
-  /**
    * Creates the html file for the given page
    * @param page the page for the markdown file
    * @returns the file path or the html as a string, undefined 
@@ -878,12 +896,12 @@ export default class HtmlGenerator extends Generator
       markedLinks(),
       markedDocument({
         title: page.title,
-        style: this.styles,
-        script: this.scripts,
-        css: this.css.map((value) => URL.canParse(value) ? value : depth + value),
-        js: this.js.map((value) => URL.canParse(value) ? value : depth + value),
-        link: this.options.favicon ? {
-          href: depth + this.options.favicon, 
+        style: this.style,
+        script: this.script,
+        css: this.assets.css.map((asset) => depth + asset.output),
+        js: this.assets.js.map((asset) => depth + asset.output),
+        link: this.assets.favicon.output ? {
+          href: depth + this.assets.favicon.output, 
           rel: 'icon', 
           sizes: 'any',
           type: 'image/x-icon',

@@ -48,7 +48,7 @@ function document(html:string, options?:Options):string
   {
     const links = Array.isArray(options.css) ? options.css : [options.css];
     for (const link of links)
-      out += `\n    <link rel="stylesheet" href="${link}">`;
+      out += `\n    <link rel="stylesheet" href="${link.replace(/\\/g, '/')}">`;
   }
   // add the links
   if (options && options.link)
@@ -58,7 +58,7 @@ function document(html:string, options?:Options):string
     {
       let l = '\n    <link';
       for (const [key, value] of Object.entries(link))
-        l += ` ${key}="${value}"`;
+        l += ` ${key}="${value.replace(/\\/g, '/')}"`;
       out += `${l}>`;
     }
   }
@@ -71,7 +71,7 @@ function document(html:string, options?:Options):string
   {
     const links = Array.isArray(options.js) ? options.js : [options.js];
     for (const link of links)
-      out += `\n    <script src="${link}"></script>`;
+      out += `\n    <script src="${link.replace(/\\/g, '/')}"></script>`;
   }
   // add the inline script
   if (options && options.script) 
