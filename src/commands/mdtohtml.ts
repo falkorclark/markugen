@@ -1,8 +1,10 @@
 
 import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
 import { version } from '../../package.json';
-import Markugen, { MarkugenOptions, HtmlOptions } from '../markugen';
+import Markugen, { MarkugenOptions, HtmlOptions, keysToCamelCase } from '../markugen';
 import { MarkugenArgs } from './markugenargs';
+import fs from 'fs-extra';
+import path from 'node:path';
 
 type Options = MarkugenOptions & HtmlOptions;
 
@@ -32,7 +34,7 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         describe: 'the directory to locate the markdown files, a single file, ' +
           'or a string of markdown',
         type: 'string',
-        demandOption: true,
+        default: '.',
       },
       extensions: {
         alias: ['exts'],
@@ -151,10 +153,21 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
         type: 'boolean',
         default: false,
       },
+      vars: {
+        alias: ['v'],
+        describe: 'path to a JSON file representing dynamic variables used in ' +
+          'template expansion',
+        type: 'string',
+        coerce: fs.readJSONSync,
+      },
+      config: {
+        describe: 'path to a JSON file with an object containing CLI arguments',
+        type: 'string',
+      },
       ...MarkugenArgs,
     });
     return args as unknown as Argv<U>;
-  };
+  }
 
   public async handler(args:ArgumentsCamelCase<U>)
   {
@@ -163,12 +176,37 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
     try 
     {
       mark = new Markugen({ cli: true });
-      await mark.generate({ ...args, cli: true });
+      await mark.generate(config(args));
     }
     catch (e:any)
     { 
       mark?.error(e);
       process.exit(1); 
     }
-  };
+  }
+}
+
+function config(args:any):any
+{
+  let options:any = { ...args, cli: true };
+  if (args.config)
+  {
+    // check existence
+    if (!fs.existsSync(args.config)) throw new Error(`No such file [${args.config}]`);
+    let json:any = {};
+    // attempt to parse json
+    try { json = fs.readJSONSync(args.config); }
+    catch(e:any) { throw new Error(`Invalid JSON, ${e.message}`); }
+    
+    // convert relative input path
+    if (json.input && !path.isAbsolute(json.input))
+      json.input = path.resolve(path.dirname(options.config), json.input);
+
+    // combine the arguments
+    options = { ...args, ...keysToCamelCase(json), cli: true };
+
+    // remove the config option
+    delete options.config;
+  }
+  return options;
 }

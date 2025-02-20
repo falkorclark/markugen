@@ -5,6 +5,9 @@ import colors from 'colors';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { MarkugenArgs } from '../commands/markugenargs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 
 interface Options extends MarkugenOptions
 {
@@ -19,9 +22,11 @@ async function main()
 {
   const tests:Record<string, TestFunc> = {
     html: html,
+    embed: embed,
     pdf: pdf,
     docs: docs,
     string: string,
+    config: config,
   };
 
   const args = yargs(hideBin(process.argv))
@@ -48,7 +53,12 @@ async function main()
   try
   {
     const mark = new Markugen(args);
-    for (const test of args.tests) await tests[test](mark, args);
+    for (const test of args.tests)
+    {
+      mark.group(colors.magenta('Testing:'), test);
+      await tests[test](mark, args);
+      mark.groupEnd();
+    }
   }
   catch(e:any) 
   { 
@@ -57,6 +67,24 @@ async function main()
   }
 }
 
+const htmlOptions = {
+  input: 'devops/tests/markdown',
+  output: 'tests/html',
+  clearOutput: true,
+  includeHidden: true,
+  assets: ['extra', 'assets'],
+  extensions: ['md', 'txt'],
+  favicon: 'extra/favicon.ico',
+  css: ['extra/my.css'],
+  js: ['extra/my.js'],
+  vars: {
+    links: {
+      Google: 'https://www.google.com',
+      Markugen: 'https://www.falkorclark.com/markugen',
+    },
+  },
+};
+
 /**
  * Tests HTML output
  * @param mark the {@link Markugen} instance
@@ -64,14 +92,21 @@ async function main()
  */
 function html(mark:Markugen, args:Options)
 {
+  mark.mdtohtml(htmlOptions);
+}
+
+/**
+ * Tests HTML output with embed flag
+ * @param mark the {@link Markugen} instance
+ * @param args the cli arguments
+ */
+function embed(mark:Markugen, args:Options)
+{
   mark.mdtohtml({
-    input: 'devops/tests',
-    output: 'tests/html',
-    clearOutput: true,
-    includeHidden: true,
-    assets: ['extra', 'assets'],
-    extensions: ['md', 'txt'],
-    favicon: 'extra/favicon.ico',
+    ...htmlOptions,
+    embed: true,
+    output: 'tests/embed',
+    assets: ['assets', path.resolve('markdown/examples')],
   });
 }
 
@@ -100,7 +135,7 @@ async function pdf(mark:Markugen, args:Options)
 {
   // pdf output test
   await mark.generate({
-    input: 'devops/tests',
+    input: 'devops/tests/markdown',
     output: 'tests/pdf',
     clearOutput: true,
     includeHidden: true,
@@ -140,6 +175,19 @@ async function string(mark:Markugen, args:Options)
     format: 'string',
     outputFormat: 'file',
   });
+}
+
+/**
+ * Tests the cli using a config file
+ */
+function config()
+{
+  const result = spawnSync(
+    'node',
+    ['--import', 'tsx', 'src/bin/cli.ts', '--config', 'devops/tests/config.json'],
+  );
+  if (result.error) throw new Error(result.error.message);
+  for (const line of result.output) if (line) console.log(line.toString().replace(/\n+$/, ''));
 }
 
 main();

@@ -103,7 +103,6 @@ export default class Markugen
   {
     return await new PdfGenerator(this, options).generate();
   }
-
   /**
    * Generates the HTML documentation and PDF files if {@link HtmlOptions.pdf}
    * is true.
@@ -120,7 +119,7 @@ export default class Markugen
         input: generated,
         remove: gen.options.pdfOnly,
       }).generate();
-      if (gen.options.pdfOnly) gen.removeGenerated();
+      if (gen.options.pdfOnly && !gen.options.keepAssets) gen.clearAssets();
       return result;
     }
     return generated;
