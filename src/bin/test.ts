@@ -65,7 +65,7 @@ async function main()
 }
 
 const htmlOptions = {
-  input: 'devops/tests',
+  input: 'devops/tests/markdown',
   output: 'tests/html',
   clearOutput: true,
   includeHidden: true,
@@ -132,7 +132,7 @@ async function pdf(mark:Markugen, args:Options)
 {
   // pdf output test
   await mark.generate({
-    input: 'devops/tests',
+    input: 'devops/tests/markdown',
     output: 'tests/pdf',
     clearOutput: true,
     includeHidden: true,

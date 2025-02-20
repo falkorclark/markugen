@@ -62,7 +62,7 @@ export default class HtmlGenerator extends Generator
   /**
    * Regular expression used for Markugen commands
    */
-  public static readonly cmdRegex:RegExp = /^\s*(?<esc>[\\]?)markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
+  public static readonly cmdRegex:RegExp = /\s*(?<esc>[\\]?)markugen\. *(?<cmd>[a-z_0-9]+) +(?<args>.+)/i;
   /**
    * Used to generate ids the same each time
    */

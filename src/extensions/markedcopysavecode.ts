@@ -23,7 +23,8 @@ function code(token:Tokens.Code):string|false
 
   let file = undefined;
   const match = token.raw.match(HtmlGenerator.cmdRegex);
-  if (match && match.groups && match.groups.cmd && match.groups.args && match.groups.cmd === 'import')
+  if (match && match.groups && match.groups.cmd && 
+    match.groups.args && match.groups.cmd === 'import' && !match.groups.esc)
     file = path.basename(match.groups.args);
  
   // create an id
