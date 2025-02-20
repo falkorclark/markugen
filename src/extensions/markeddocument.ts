@@ -23,60 +23,58 @@ export default function markedDocument(options?:Options):MarkedExtension
   return {
     async: false,
     hooks: {
-      postprocess: (html) => document(html, options),
+      postprocess(html)
+      {
+        // begin the document
+        let out = `<!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta content="width=device-width, initial-scale=1" name="viewport">`;
+      
+        // add the title
+        if (options && options.title) 
+          out += `\n    <title>${encode(options.title)}</title>`;
+        // add the inline styles
+        if (options && options.style) 
+          out += `\n    <style>\n    ${options.style}\n    </style>`;
+        // add the linked styles
+        if (options && options.css)
+        {
+          const links = Array.isArray(options.css) ? options.css : [options.css];
+          for (const link of links)
+            out += `\n    <link rel="stylesheet" href="${link.replace(/\\/g, '/')}">`;
+        }
+        // add the links
+        if (options && options.link)
+        {
+          const links = Array.isArray(options.link) ? options.link : [options.link];
+          for (const link of links)
+          {
+            let l = '\n    <link';
+            for (const [key, value] of Object.entries(link))
+              l += ` ${key}="${value.replace(/\\/g, '/')}"`;
+            out += `${l}>`;
+          }
+        }
+      
+        // close head, start body
+        out += `\n  </head>\n  <body>\n    ${html}`;
+      
+        // add the linked javascript
+        if (options && options.js)
+        {
+          const links = Array.isArray(options.js) ? options.js : [options.js];
+          for (const link of links)
+            out += `\n    <script src="${link.replace(/\\/g, '/')}"></script>`;
+        }
+        // add the inline script
+        if (options && options.script) 
+          out += `\n    <script>\n    ${options.script}\n    </script>`;
+      
+        // close out and return
+        return `${out}\n  </body>\n</html>`;
+      },
     }
   };
-}
-
-function document(html:string, options?:Options):string
-{
-  // begin the document
-  let out = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">`;
-
-  // add the title
-  if (options && options.title) 
-    out += `\n    <title>${encode(options.title)}</title>`;
-  // add the inline styles
-  if (options && options.style) 
-    out += `\n    <style>\n    ${options.style}\n    </style>`;
-  // add the linked styles
-  if (options && options.css)
-  {
-    const links = Array.isArray(options.css) ? options.css : [options.css];
-    for (const link of links)
-      out += `\n    <link rel="stylesheet" href="${link.replace(/\\/g, '/')}">`;
-  }
-  // add the links
-  if (options && options.link)
-  {
-    const links = Array.isArray(options.link) ? options.link : [options.link];
-    for (const link of links)
-    {
-      let l = '\n    <link';
-      for (const [key, value] of Object.entries(link))
-        l += ` ${key}="${value.replace(/\\/g, '/')}"`;
-      out += `${l}>`;
-    }
-  }
-
-  // close head, start body
-  out += `\n  </head>\n  <body>\n    ${html}`;
-
-  // add the linked javascript
-  if (options && options.js)
-  {
-    const links = Array.isArray(options.js) ? options.js : [options.js];
-    for (const link of links)
-      out += `\n    <script src="${link.replace(/\\/g, '/')}"></script>`;
-  }
-  // add the inline script
-  if (options && options.script) 
-    out += `\n    <script>\n    ${options.script}\n    </script>`;
-
-  // close out and return
-  return `${out}\n  </body>\n</html>`;
 }

@@ -1,4 +1,23 @@
 
+/**
+ * Replaces any hyphens in the keys with the camel case version
+ * @param obj the object to convert
+ * @returns a new object with the keys converted to camel case
+ */
+export function keysToCamelCase(obj:any):any
+{
+  if (!obj) return {};
+  let result:any = {};
+  for (const [key, value] of Object.entries(obj))
+  {
+    const camel = key.replace(/-([a-z])/ig, (match, p1:string) =>
+    {
+      return p1.toUpperCase();
+    });
+    result[camel] = value;
+  }
+  return result;
+}
 
 /**
  * Computes the parts of time from the given milliseconds

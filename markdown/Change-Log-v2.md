@@ -15,6 +15,13 @@ This version has some bug fixes related to assets and some new features.
   setting of the dynamic variables used in template expansion: `--vars`. The
   flag takes a path to a JSON file with a JSON object where each key in the
   object represents a variable in template expansion.
+* The save to file icon in code that is imported from a file has been
+  returned to its original working state.
+* A new flag was added to the [CLI](./Command-Line-Interface.md) that allows
+  setting of the CLI options via a config file: `--config`.
+* The `--input` flag is no longer required when using the 
+  [CLI](./Command-Line-Interface.md), it will default to the current working
+  directory.
 
 ## v2.0.2
 This is another bug fix release. The following bugs were fixed in this release:

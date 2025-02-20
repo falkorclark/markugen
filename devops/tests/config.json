@@ -1,0 +1,17 @@
+{
+  "input": "markdown",
+  "output": "tests/config",
+  "clearOutput": true,
+  "include-hidden": true,
+  "assets": ["extra", "assets"],
+  "extensions": ["md", "txt"],
+  "favicon": "extra/favicon.ico",
+  "css": ["extra/my.css"],
+  "js": ["extra/my.js"],
+  "vars": {
+    "links": {
+      "Google": "https://www.google.com",
+      "Markugen": "https://www.falkorclark.com/markugen"
+    }
+  }
+}

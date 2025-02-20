@@ -11,25 +11,20 @@ export default function markedCopySaveCode():MarkedExtension
   return {
     async: false,
     renderer: {
-      code: (token) => code(token)
-    }
-  };
-}
-
-function code(token:Tokens.Code):string|false
-{
-  // default language
-  if (!token.lang) token.lang = 'txt';
-
-  let file = undefined;
-  const match = token.raw.match(HtmlGenerator.cmdRegex);
-  if (match && match.groups && match.groups.cmd && 
-    match.groups.args && match.groups.cmd === 'import' && !match.groups.esc)
-    file = path.basename(match.groups.args);
- 
-  // create an id
-  const id = `copy-save-${HtmlGenerator.globalId++}`;
-  return `<div class="markugen-code">
+      code(token)
+      {
+        // default language
+        if (!token.lang) token.lang = 'txt';
+      
+        let file = undefined;
+        const match = token.raw.match(HtmlGenerator.cmdRegex);
+        if (match && match.groups && match.groups.cmd && 
+          match.groups.args && match.groups.cmd === 'import' && !match.groups.esc)
+          file = path.basename(match.groups.args);
+       
+        // create an id
+        const id = `copy-save-${HtmlGenerator.globalId++}`;
+        return `<div class="markugen-code">
   <div class="markugen-code-toolbar">
     <div class="markugen-code-title">${file ? file : '.' + token.lang}</div>
   ${copy(id)}
@@ -37,6 +32,9 @@ function code(token:Tokens.Code):string|false
   </div>
   <pre class="markugen-code-content"><code id="${id}" class="hljs language-${token.lang}">${token.text}</code></pre>
 </div>`;
+      },
+    }
+  };
 }
 
 function copy(id:string)

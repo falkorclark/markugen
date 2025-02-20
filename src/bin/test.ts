@@ -6,6 +6,8 @@ import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
 import { MarkugenArgs } from '../commands/markugenargs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 
 interface Options extends MarkugenOptions
 {
@@ -24,6 +26,7 @@ async function main()
     pdf: pdf,
     docs: docs,
     string: string,
+    config: config,
   };
 
   const args = yargs(hideBin(process.argv))
@@ -172,6 +175,19 @@ async function string(mark:Markugen, args:Options)
     format: 'string',
     outputFormat: 'file',
   });
+}
+
+/**
+ * Tests the cli using a config file
+ */
+function config()
+{
+  const result = spawnSync(
+    'node',
+    ['--import', 'tsx', 'src/bin/cli.ts', '--config', 'devops/tests/config.json'],
+  );
+  if (result.error) throw new Error(result.error.message);
+  for (const line of result.output) if (line) console.log(line.toString().replace(/\n+$/, ''));
 }
 
 main();
