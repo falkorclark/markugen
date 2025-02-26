@@ -3,6 +3,10 @@ This page will be updated with changes to Markugen upon each new release.
 The log was started at version 2.0.0 and will be continued for each new release
 moving forward.
 
+## v2.0.4
+This is a minor bug fix for the `--pdf-only` flag. In previous versions, this
+flag would cause the output directory to be completely removed.
+
 ## v2.0.3
 This version has some bug fixes related to assets and some new features.
 

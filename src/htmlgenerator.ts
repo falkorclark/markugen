@@ -196,8 +196,12 @@ export default class HtmlGenerator extends Generator
     }
     for(const asset of temp)
     {
-      const full = path.resolve(this.output, asset.output);
-      if (fs.existsSync(full)) fs.removeSync(full);
+      // handle empty assets
+      if (asset.output)
+      {
+        const full = path.resolve(this.output, asset.output);
+        if (fs.existsSync(full)) fs.removeSync(full);
+      }
     }
   }
   
