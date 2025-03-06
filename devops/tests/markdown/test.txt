@@ -11,6 +11,19 @@ This is a link that has the URL in the text as well:
 ## Double Colon Test
 Double colons cause line breaks, this is a test of double colon results:
 
-`Is there a line break here Foo\\:\\:Bar`
+`Is there a line break here Foo::Bar`
 
 What about in normal text? Foo\:\:Bar
+
+What about a code block?
+
+```cpp
+#include "Bar.h"
+
+class Foo {}
+
+void foo()
+{
+  Foo::bar();
+}
+```
