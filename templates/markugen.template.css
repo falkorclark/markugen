@@ -456,7 +456,8 @@ th {
 .hljs-string, .hljs-selector-class, .hljs-selector-pseudo {
   color: var(--hljs-string);
 }
-.hljs-keyword, .hljs-literal, .hljs-built_in, .hljs-section, .hljs-selector-tag {
+.hljs-keyword, .hljs-literal, .hljs-built_in, 
+.hljs-section, .hljs-selector-tag, .hljs-meta {
   color: var(--hljs-keyword);
 }
 .hljs-link, .hljs-selector-id {

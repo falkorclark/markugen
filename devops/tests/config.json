@@ -3,6 +3,7 @@
   "output": "tests/config",
   "clearOutput": true,
   "include-hidden": true,
+  "footer": "Does the footer work?",
   "assets": ["extra", "assets"],
   "extensions": ["md", "txt"],
   "favicon": "extra/favicon.ico",

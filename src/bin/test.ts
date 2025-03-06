@@ -70,6 +70,7 @@ async function main()
 const htmlOptions = {
   input: 'devops/tests/markdown',
   output: 'tests/html',
+  footer: 'Does the footer work?',
   clearOutput: true,
   includeHidden: true,
   assets: ['extra', 'assets'],
