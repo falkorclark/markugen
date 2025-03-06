@@ -458,6 +458,7 @@ export default class HtmlGenerator extends Generator
     this.sitemap.title = this.options.title;
     this.sitemap.toc = this.options.toc;
     this.sitemap.home = this.options.home;
+    this.sitemap.footer = this.options.footer;
     this.sitemap.children = {};
     this.style = '';
     this.script = '';
