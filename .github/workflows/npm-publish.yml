@@ -18,12 +18,12 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://registry.npmjs.org/'
       - uses: browser-actions/setup-chrome@v1
         id: chrome
       - run: npm ci
       - run: npm test -- --no-sandbox -b ${{ steps.chrome.outputs.chrome-path }}
       - run: npm run build --if-present
-      - run: npm publish --access public --provenance
+      - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
