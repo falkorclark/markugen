@@ -32,7 +32,7 @@ export default class Markugen
   /**
    * The name of Markugen
    */
-  public static readonly name:string = name;
+  public static readonly name:string = name.replace('@neverending/', '');
   /**
    * The home page of Markugen
    */

@@ -7,11 +7,11 @@ Welcome to Markugen! You have been Marked!! 😜
 ## Installation
 
 ```bash
-npm install markugen
+npm install @neverending/markugen
 # or
-yarn add markugen
+yarn add @neverending/markugen
 # or
-pnpm add markugen
+pnpm add @neverending/markugen
 ```
 
 ## Inspiration
@@ -68,7 +68,7 @@ The following code will generate the docs located in the Markugen package under
 generation:
 
 ```ts
-import Markugen from 'markugen';
+import Markugen from '@neverending/markugen';
 
 const mark = new Markugen();
 mark.generate({

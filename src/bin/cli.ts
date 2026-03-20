@@ -2,9 +2,9 @@
 
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
-import { name } from '../../package.json';
 import { MdToHtml } from '../commands/mdtohtml';
 import { HtmlToPdf } from '../commands/htmltopdf';
+import Markugen from '../markugen';
 
 // Handle startup
 async function main() 
@@ -16,11 +16,12 @@ async function main()
       'strip-dashed': true,
     })
     .showHelpOnFail(false)
-    .alias(['h'], 'help')
-    .help('h')
+    .help('help', 'show help and exit')
+    .version('version', 'show version and exit', Markugen.version)
+    .alias({ help: ['h', '?'] })
     .command(new MdToHtml)
     .command(new HtmlToPdf)
-    .scriptName(name)
+    .scriptName(Markugen.name)
     .parse();
 }
 

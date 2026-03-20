@@ -3,6 +3,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'fs-extra';
 import Markugen from '../markugen';
+import colors from 'colors';
 
 function main()
 {
@@ -30,12 +31,22 @@ function docs()
 function tsc() 
 {
   fs.removeSync('./lib');
-  const result = spawnSync(
-    'npx', ['tsc', '-p', 'tsconfig.json'],
-    {shell:true, encoding:'utf8'}
-  );
-  if (result.stdout) console.log(result.stdout);
-  if (result.stderr) console.error(result.stderr);
+  const result = spawnSync('npx tsc -p tsconfig.json', {
+    shell: true,
+    encoding:'utf8',
+    stdio: 'pipe'
+  });
+  if (result.status !== 0)
+  {
+    console.error(colors.red('TypeScript compilation failed'));
+    if (result.stderr) console.error(result.stderr);
+    process.exit(result.status);
+  }
+  else 
+  {
+    console.log(colors.green('TypeScript compilation successful'));
+    if (result.stdout) console.log(result.stdout);
+  }
   return !result.error;
 }
 

@@ -66,7 +66,7 @@ by adding the following code somewhere in your project:
 
 ```ts
 // import markugen
-import Markugen from 'markugen';
+import Markugen from '@neverending/markugen';
 
 // create an instance
 const mark = new Markugen();
@@ -100,7 +100,7 @@ modifying your code to look like the following:
 
 ```ts
 // import markugen
-import Markugen from 'markugen';
+import Markugen from '@neverending/markugen';
 
 // create the instance
 const mark = new Markugen();

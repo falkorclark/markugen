@@ -1,6 +1,5 @@
 
 import { CommandModule, Argv, ArgumentsCamelCase } from 'yargs';
-import { version } from '../../package.json';
 import Markugen, { MarkugenOptions, HtmlOptions, keysToCamelCase } from '../markugen';
 import { MarkugenArgs } from './markugenargs';
 import fs from 'fs-extra';
@@ -73,7 +72,7 @@ export class MdToHtml<U extends Options> implements CommandModule<object, U>
       title: {
         alias: ['t'],
         describe: 'the title to use for the site',
-        default: 'Markugen v' + version,
+        default: 'Markugen v' + Markugen.version,
         type: 'string',
       },
       'inherit-title': {

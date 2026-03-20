@@ -33,7 +33,7 @@ export default function markedCommands(options:Options):MarkedExtension
         else if (match.groups.cmd === 'exec')
         {
           options.generator.log('Executing:', match.groups.args);
-          const result = spawnSync(match.groups.args, [], {
+          const result = spawnSync(match.groups.args, {
             shell: true,
             encoding: 'utf8', 
             windowsVerbatimArguments: process.platform === 'win32' ? true : undefined,
