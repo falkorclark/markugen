@@ -136,6 +136,7 @@ async function pdf(mark:Markugen, args:Options)
 {
   // pdf output test
   await mark.generate({
+    ...htmlOptions,
     input: 'devops/tests/markdown',
     output: 'tests/pdf',
     clearOutput: true,
