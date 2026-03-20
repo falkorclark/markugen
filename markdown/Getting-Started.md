@@ -10,11 +10,11 @@ commands:
 
 :::tabs
 ::tab[npm]
-`npm install markugen`
+`npm install @neverending/markugen`
 ::tab[yarn]
-`yarn add markugen`
+`yarn add @neverending/markugen`
 ::tab[pnpm]
-`pnpm add markugen`
+`pnpm add @neverending/markugen`
 :::
 
 ## Build Your Website
@@ -27,7 +27,7 @@ point to the location of the folder containing your markdown files.
 
 ```ts
 // import markugen
-import Markugen from 'markugen';
+import Markugen from '@neverending/markugen';
 
 // create an instance
 const mark = new Markugen();
@@ -44,7 +44,7 @@ like so:
 
 ```ts
 // import markugen
-import Markugen from 'markugen';
+import Markugen from '@neverending/markugen';
 
 // create an instance
 const mark = new Markugen();
