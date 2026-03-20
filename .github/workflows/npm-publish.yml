@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-      - uses: browser-actions/setup-chrome@v1
+      - uses: browser-actions/setup-chrome@v2
         id: chrome
       - run: npm ci
       - run: npm test -- --no-sandbox -b ${{ steps.chrome.outputs.chrome-path }}

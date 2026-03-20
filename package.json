@@ -1,6 +1,6 @@
 {
   "name": "@neverending/markugen",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Markdown to HTML/PDF static site generation tool",
   "repository": {
     "type": "git",
