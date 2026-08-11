@@ -38,13 +38,13 @@ export default function markedCommands(options:Options):MarkedExtension
             encoding: 'utf8', 
             windowsVerbatimArguments: process.platform === 'win32' ? true : undefined,
           });
-          const text = (result.stdout + '\n' + result.stderr).trim();
+          const text = (result.stdout).trim();
           // remove coloring characters
           token.text = text.replace(/(\x1b[^m]+m)/gi, '');
           if (result.stderr)
           {
             options.generator.group();
-            options.generator.warning(text);
+            options.generator.warning(result.stderr);
             options.generator.groupEnd();
           }
         }

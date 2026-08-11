@@ -59,7 +59,7 @@ The full documentation can be found in the `docs` directory. The docs are genera
 using Markugen; therefore, this is also a great place to see a demo of what 
 Markugen produces as output. You can download the docs directory and view the
 HTML files within it, or you can view the docs directly at the following
-website: [falkorclark.com/markugen](https://www.falkorclark.com/markugen/index.html).
+website: [falkorclark.github.io/markugen](https://falkorclark.github.io/markugen/).
 
 ## Usage
 

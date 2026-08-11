@@ -1,0 +1,110 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: Publish Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write  # Required to read repository contents
+  pages: write    # Required to write to GitHub Pages
+  id-token: write # Required for secure deployment authentication
+
+# Prevent multiple concurrent deployments from conflicting
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+                
+      - name: Extract version from package.json
+        id: version
+        run: |
+          # Read the version field using jq
+          VERSION=$(jq -r '.version' package.json)
+          echo "Extracted Version: $VERSION"
+          
+          # Save it as an output variable for subsequent steps
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Setup Chrome 
+        uses: browser-actions/setup-chrome@v2
+        id: chrome
+        
+      - name: Build Markugen
+        run: npm ci && npm run build
+
+      - name: Test Markugen
+        run: npm test -- --no-sandbox -b ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Create Release with GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Reference the version from the previous step output
+          TAG_NAME="v${{ steps.version.outputs.version }}"
+          
+          # Check if the release/tag already exists to prevent pipeline crashes
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release v$TAG_NAME already exists."
+            exit 1
+          fi
+          
+          # Create the release
+          gh release create "$TAG_NAME" --title "Release $TAG_NAME" --generate-notes
+
+      - name: Publish to NPM
+        run: |
+          # check if prerelease
+          if [[ "${{ steps.version.outputs.version }}" == *-* ]]; then
+            npm publish --tag next
+          else
+            npm publish
+          fi
+
+      - name: Upload docs as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation
+          path: docs/
+
+  publish-docs:
+    needs: publish
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download documentation
+        uses: actions/download-artifact@v7
+        with:
+          name: documentation
+          path: docs/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: 'docs/'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
