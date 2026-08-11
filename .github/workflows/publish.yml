@@ -64,4 +64,10 @@ jobs:
           gh release create "$TAG_NAME" --title "Release $TAG_NAME" --generate-notes
 
       - name: Publish to NPM
-        run: npm publish
+        run: |
+          # check if prerelease
+          if [[ "$VERSION" == *-* ]]; then
+            npm publish --tag next
+          else
+            npm publish
+          fi
