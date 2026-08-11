@@ -5,6 +5,9 @@ name: Publish Release
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 54-update-docs-and-create-release-pipeline
 
 jobs:
   publish:
