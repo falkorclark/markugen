@@ -78,20 +78,20 @@ jobs:
             npm publish
           fi
 
-      - name: Upload docs as artifact
+      - name: Upload Documentation Artifact
         uses: actions/upload-artifact@v7
         with:
           name: documentation
           path: docs/
 
-  publish-docs:
+  deploy-docs:
     needs: publish
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download documentation
+      - name: Download Documentation
         uses: actions/download-artifact@v7
         with:
           name: documentation
@@ -100,11 +100,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
-      - name: Upload artifact
+      - name: Upload Pages
         uses: actions/upload-pages-artifact@v5
         with:
           path: 'docs/'
 
-      - name: Deploy
+      - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v5

@@ -1,7 +1,7 @@
 # This workflow will execute the tests on PR submission
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: NPM Test
+name: Execute Tests
 
 on:
   pull_request:
