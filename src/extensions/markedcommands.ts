@@ -41,10 +41,10 @@ export default function markedCommands(options:Options):MarkedExtension
           const text = (result.stdout + '\n' + result.stderr).trim();
           // remove coloring characters
           token.text = text.replace(/(\x1b[^m]+m)/gi, '');
-          if (result.status != 0 && result.stderr)
+          if (result.stderr)
           {
             options.generator.group();
-            options.generator.warning(text);
+            options.generator.warning(result.stderr);
             options.generator.groupEnd();
           }
         }
