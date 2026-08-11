@@ -1,12 +1,12 @@
 {
   "name": "@neverending/markugen",
-  "version": "2.0.9-beta",
+  "version": "2.0.9-gamma",
   "description": "Markdown to HTML/PDF static site generation tool",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/falkorclark/markugen.git"
   },
-  "homepage": "https://falkorclark.com/markugen/index.html",
+  "homepage": "https://falkorclark.github.io/markugen/",
   "bin": {
     "markugen": "lib/bin/cli.js"
   },
