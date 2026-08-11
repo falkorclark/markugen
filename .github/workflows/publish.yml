@@ -4,10 +4,9 @@
 name: Publish Release
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - 54-update-docs-and-create-release-pipeline
+      - main
 
 permissions:
   contents: write  # Required to read repository contents
