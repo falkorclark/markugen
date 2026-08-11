@@ -9,12 +9,19 @@ on:
     branches:
       - 54-update-docs-and-create-release-pipeline
 
+permissions:
+  contents: read # Required to read repository contents
+  pages: write    # Required to write to GitHub Pages
+  id-token: write # Required for secure deployment authentication
+
+# Prevent multiple concurrent deployments from conflicting
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
@@ -73,7 +80,7 @@ jobs:
           fi
 
       - name: Upload docs as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: documentation
           path: docs/
@@ -86,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download documentation
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: documentation
           path: docs/
