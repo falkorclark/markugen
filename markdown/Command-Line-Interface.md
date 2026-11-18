@@ -52,7 +52,7 @@ markugen --help
 The help option will output the following help message:
 
 ```
-markugen.exec npm start -- help
+markugen.exec npm start -s -- help
 ```
 
 ## Subcommands
@@ -66,10 +66,10 @@ the default `html` subcommand and the `pdf` subcommand respectively:
 
 ### Markdown to HTML
 ```
-markugen.exec npm start -- html help
+markugen.exec npm start -s -- html help
 ```
 
 ### HTML to PDF
 ```
-markugen.exec npm start -- pdf help
+markugen.exec npm start -s -- pdf help
 ```

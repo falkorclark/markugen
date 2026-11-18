@@ -192,10 +192,10 @@ function config(args:any):any
   {
     // check existence
     if (!fs.existsSync(args.config)) throw new Error(`No such file [${args.config}]`);
-    let json:any = {};
+    let json:any;
     // attempt to parse json
     try { json = fs.readJSONSync(args.config); }
-    catch(e:any) { throw new Error(`Invalid JSON, ${e.message}`); }
+    catch(e:any) { throw new Error(`Invalid JSON, ${e.message}`, {cause: e}); }
     
     // convert relative input path
     if (json.input && !path.isAbsolute(json.input))
