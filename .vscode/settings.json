@@ -1,8 +1,14 @@
 {
    "cSpell.words": [
       "falkorclark",
+      "htmloptions",
+      "markedcommands",
+      "markedcopysavecode",
+      "markeddocument",
+      "markedlinks",
       "mdtohtml",
       "pipefail",
-      "Preprocesser"
+      "Preprocesser",
+      "tabdirectives"
    ]
 }

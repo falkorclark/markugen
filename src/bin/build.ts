@@ -11,9 +11,7 @@ function main()
   docs();
 }
 
-/**
- * Generates the documentation
- */
+// Generates the documentation
 function docs()
 {
   const mark = new Markugen();
@@ -25,9 +23,7 @@ function docs()
   });
 }
 
-/**
- * Compiles the project using the typescript compiler
- */
+// Compiles the project using the typescript compiler
 function tsc() 
 {
   fs.removeSync('./lib');
@@ -39,6 +35,7 @@ function tsc()
   if (result.status !== 0)
   {
     console.error(colors.red('TypeScript compilation failed'));
+    if (result.stdout) console.log(result.stdout);
     if (result.stderr) console.error(result.stderr);
     process.exit(result.status);
   }
